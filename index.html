@@ -110,7 +110,7 @@ function doLogout(){
   try{localStorage.removeItem('baemin_session');}catch(e){}
   location.reload();
 }
-async async function openApproval(){
+async function openApproval(){
   var m=document.getElementById('approvalModal');
   m.style.display='';
   await loadPendingUsers();
