@@ -112,7 +112,7 @@ function doLogout(){
 }
 async function openApproval(){
   var m=document.getElementById('approvalModal');
-  m.style.display='';
+  m.style.display='block';
   await loadPendingUsers();
 }
 function closeApproval(){document.getElementById('approvalModal').style.display='none';}
@@ -124,7 +124,7 @@ async function loadPendingUsers(){
     try{sess=JSON.parse(localStorage.getItem('baemin_session')||'null');}catch(e){}
     var d=await baeminApi('listPendingUsers',{token:sess?sess.token:''});
     if(!d.ok){el.innerHTML='<div style="color:#FF6B6B;text-align:center;padding:5vw;">조회 실패</div>';return;}
-    var list=d.result.users||[];
+    var list=d.result||[];
     if(!list.length){el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">대기 중인 신청이 없습니다.</div>';return;}
     var h='';
     list.forEach(function(u,i){
