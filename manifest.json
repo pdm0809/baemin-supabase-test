@@ -1,0 +1,9 @@
+{
+  "name": "빠름빠름 상황판 (테스트)",
+  "short_name": "상황판 테스트",
+  "start_url": "/baemin-supabase-test/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait"
+}
