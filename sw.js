@@ -1,59 +1,21 @@
-const CACHE_NAME = 'baemin-v2';
-const APP_SHELL = [
-  '/baemin-supabase-test/',
-  '/baemin-supabase-test/index.html',
-  '/baemin-supabase-test/manifest.json'
-];
-
+// 서비스워커 비활성화 - 긴급 복구용
 self.addEventListener('install', function(e) {
-  e.waitUntil(
-    caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(APP_SHELL);
-    }).then(function() {
-      return self.skipWaiting();
-    }).catch(function(err) {
-      // 캐시 실패해도 설치는 계속
-      return self.skipWaiting();
-    })
-  );
+  self.skipWaiting();
 });
-
 self.addEventListener('activate', function(e) {
   e.waitUntil(
     caches.keys().then(function(keys) {
       return Promise.all(keys.map(function(key) {
-        if (key !== CACHE_NAME) return caches.delete(key);
+        return caches.delete(key);
       }));
     }).then(function() {
       return self.clients.claim();
+    }).then(function() {
+      return self.registration.unregister();
     })
   );
 });
-
 self.addEventListener('fetch', function(e) {
-  // GET 요청만 처리
-  if (e.request.method !== 'GET') return;
-  
-  e.respondWith(
-    fetch(e.request).then(function(response) {
-      // 네트워크 성공시 캐시에 저장 (정적 리소스만)
-      if (response.ok && e.request.url.includes('/baemin-supabase-test/')) {
-        var clone = response.clone();
-        caches.open(CACHE_NAME).then(function(cache) {
-          cache.put(e.request, clone);
-        });
-      }
-      return response;
-    }).catch(function() {
-      // 네트워크 실패시 캐시에서 제공
-      return caches.match(e.request).then(function(cached) {
-        if (cached) return cached;
-        // 네비게이션 요청이면 index.html 반환
-        if (e.request.mode === 'navigate') {
-          return caches.match('/baemin-supabase-test/index.html');
-        }
-        return new Response('offline', { status: 503 });
-      });
-    })
-  );
+  // 모든 요청을 네트워크로 통과 (캐시 사용 안 함)
+  return;
 });
