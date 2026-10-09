@@ -456,13 +456,13 @@ function closeApproval(){
     var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     var cnt=dateCounts[ds]||0;
     var isSel=ds===window._mCalSel;
-    var cell='display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;border-radius:50%;';
-    if(cnt===0){
-      h+='<div></div>';
-    }else if(isSel){
-      h+='<div style="'+cell+'background:#0A84FF;color:#fff;font-weight:900;"><div style="font-size:4.4vw;">'+d+'</div><div style="font-size:2.6vw;">'+cnt+'건</div></div>';
+    var cell='display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;border-radius:50%;font-size:4.4vw;';
+    if(cnt>0&&isSel){
+      h+='<div style="'+cell+'background:#0A84FF;color:#fff;font-weight:900;"><div>'+d+'</div><div style="font-size:2.6vw;">'+cnt+'건</div></div>';
+    }else if(cnt>0){
+      h+='<div data-ds="'+ds+'" onclick="_mCalPick(this)" style="'+cell+'cursor:pointer;background:#FF9500;color:#000;font-weight:900;"><div>'+d+'</div><div style="font-size:2.6vw;">'+cnt+'건</div></div>';
     }else{
-      h+='<div data-ds="'+ds+'" onclick="_mCalPick(this)" style="'+cell+'cursor:pointer;background:#FF9500;color:#000;font-weight:900;"><div style="font-size:4.4vw;">'+d+'</div><div style="font-size:2.6vw;">'+cnt+'건</div></div>';
+      h+='<div style="'+cell+'color:#3a3a3c;">'+d+'</div>';
     }
   }
   h+='</div></div>';
