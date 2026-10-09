@@ -291,7 +291,7 @@ async function loadUnifiedUsers(){
         +'<div style="flex:1;min-width:0;"><div style="color:#fff;font-size:4.2vw;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(u.name)
         +(isAdmin?' <span style="color:#FF9500;font-size:3vw;">👑</span>':'')
         +'</div>'
-        +'<div style="color:#888;font-size:3.2vw;">@'+escapeHtml(u.id)+' · '+statusLabel(u.status)+' · 가입 '+fmtDate(u.created_at)+(u.has_device?' · 📱':'')+'</div></div>'
+        +'<div style="color:#888;font-size:3.2vw;">@'+escapeHtml(u.id)+' · '+statusLabel(u.status)+' · 가입 '+fmtDate(u.created_at)+'</div></div>'
         +'</div>'
         +'<div style="display:flex;gap:1.5vw;margin-top:2.5vw;flex-wrap:wrap;">';
       if(u.status==='pending'){
