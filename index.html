@@ -123,6 +123,7 @@ async function doRegister(){
   }catch(e){errEl.textContent='서버 연결 실패';}
 }
 function applySessionUI(s){
+  try{updatePendingBadge();}catch(e){}
   try{
     var adminBtn=document.getElementById('adminBtn');
     if(adminBtn)adminBtn.style.display=s&&s.isAdmin?'':'none';
@@ -135,22 +136,8 @@ function doLogout(){
   location.reload();
 }
 var _modalHistoryPushed=false;
-async function openApproval(){
-  var m=document.getElementById('approvalModal');
-  m.style.display='block';
-  try{
-    history.pushState({modal:'approval'},'');
-    _modalHistoryPushed=true;
-  }catch(e){}
-  await loadPendingUsers();
-}
-function closeApproval(){
-  document.getElementById('approvalModal').style.display='none';
-  if(_modalHistoryPushed){
-    _modalHistoryPushed=false;
-    try{history.back();}catch(e){}
-  }
-}
+
+
 window.addEventListener('popstate',function(e){
   _modalHistoryPushed=false;
   var ids=['approvalModal','dateView','attendView','missionsView','personalRateView','riderView','settingsView','histDateView','searchHistView'];
@@ -159,173 +146,207 @@ window.addEventListener('popstate',function(e){
     if(el&&el.style.display==='block'){el.style.display='none';}
   }
 });
-async function loadPendingUsers(){
-  var el=document.getElementById('pendingList');
+var _userStatusFilter='';
+var _userSearchQuery='';
+var _userSearchTimer=null;
+var _selectedUsers=new Set();
+var _unifiedUserCache=[];
+function setUserStatusFilter(s){
+  _userStatusFilter=s;
+  _selectedUsers.clear();
+  var btns=document.getElementById('userStatusFilters').querySelectorAll('button');
+  btns.forEach(function(b){
+    var active=b.getAttribute('data-status')===s;
+    b.style.background=active?'#FF9500':'#3a3a3c';
+    b.style.color=active?'#000':'#fff';
+  });
+  loadUnifiedUsers();
+}
+function onUserSearchInput(){
+  clearTimeout(_userSearchTimer);
+  _userSearchTimer=setTimeout(function(){
+    _userSearchQuery=document.getElementById('userSearchInput').value.trim();
+    _selectedUsers.clear();
+    loadUnifiedUsers();
+  },300);
+}
+function toggleUserSelect(uid){
+  if(_selectedUsers.has(uid))_selectedUsers.delete(uid);
+  else _selectedUsers.add(uid);
+  updateBulkBar();
+  var cb=document.getElementById('cb_'+uid);
+  if(cb)cb.checked=_selectedUsers.has(uid);
+}
+function toggleSelectAll(checked){
+  _selectedUsers.clear();
+  if(checked){
+    _unifiedUserCache.forEach(function(u){_selectedUsers.add(u.id);});
+  }
+  loadUnifiedUsers();
+}
+function updateBulkBar(){
+  var bar=document.getElementById('userBulkBar');
+  if(_selectedUsers.size>0){
+    bar.style.display='flex';
+    document.getElementById('userBulkCount').textContent=_selectedUsers.size+'명 선택';
+  }else{
+    bar.style.display='none';
+  }
+}
+function statusLabel(s){
+  if(s==='pending')return '<span style="color:#FF9500;font-weight:900;">대기</span>';
+  if(s==='approved')return '<span style="color:#34C759;font-weight:900;">승인됨</span>';
+  if(s==='blocked')return '<span style="color:#FF3B30;font-weight:900;">차단됨</span>';
+  if(s==='rejected')return '<span style="color:#888;font-weight:900;">거절됨</span>';
+  return s;
+}
+function fmtDate(iso){
+  try{
+    var d=new Date(iso);
+    return (d.getMonth()+1)+'/'+d.getDate();
+  }catch(e){return '';}
+}
+async function loadUnifiedUsers(){
+  var el=document.getElementById('unifiedUserList');
   el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">불러오는 중...</div>';
   try{
     var sess=null;
     try{sess=JSON.parse(localStorage.getItem('baemin_session')||'null');}catch(e){}
-    var d=await baeminApi('listPendingUsers',{token:sess?sess.token:''});
+    var d=await baeminApi('listAllUsers',{token:sess?sess.token:'',status:_userStatusFilter,search:_userSearchQuery});
     if(!d.ok){el.innerHTML='<div style="color:#FF6B6B;text-align:center;padding:5vw;">조회 실패</div>';return;}
     var list=d.result||[];
-    if(!list.length){el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">대기 중인 신청이 없습니다.</div>';return;}
-    var h='';
-    list.forEach(function(u,i){
-      h+='<div style="display:flex;align-items:center;gap:3vw;background:#1c1c1e;border:1px solid #2c2c2e;border-radius:10px;padding:3vw 4vw;margin-bottom:2vw;">'
-        +'<div style="flex:1;"><div style="color:#fff;font-size:4.4vw;font-weight:900;">'+escapeHtml(u.name)+'</div>'
-        +'<div style="color:#888;font-size:3.4vw;">@'+escapeHtml(u.id)+'</div></div>'
-        +'<button onclick="approveUser(\''+escapeHtml(u.id)+'\',true)" style="background:#34C759;color:#000;border:none;border-radius:8px;padding:2.5vw 4vw;font-size:3.8vw;font-weight:900;cursor:pointer;">승인</button>'
-        +'<button onclick="approveUser(\''+escapeHtml(u.id)+'\',false)" style="background:#3a3a3c;color:#FF6B6B;border:none;border-radius:8px;padding:2.5vw 4vw;font-size:3.8vw;font-weight:900;cursor:pointer;">거절</button>'
-        +'</div>';
-    });
-    el.innerHTML=h;
-  }catch(e){el.innerHTML='<div style="color:#FF6B6B;text-align:center;padding:5vw;">오류 발생</div>';}
-}
-function customConfirm(msg){
-  return new Promise(function(resolve){
-    var modal=document.getElementById('customConfirmModal');
-    document.getElementById('customConfirmMsg').textContent=msg;
-    modal.style.display='flex';
-    var ok=document.getElementById('customConfirmOk');
-    var cancel=document.getElementById('customConfirmCancel');
-    function cleanup(v){
-      modal.style.display='none';
-      ok.onclick=null;cancel.onclick=null;
-      modal.onclick=null;
-      resolve(v);
-    }
-    ok.onclick=function(){cleanup(true);};
-    cancel.onclick=function(){cleanup(false);};
-    modal.onclick=function(e){if(e.target===modal)cleanup(false);};
-  });
-}
-function customAlert(msg){
-  return new Promise(function(resolve){
-    var modal=document.getElementById('customAlertModal');
-    document.getElementById('customAlertMsg').textContent=msg;
-    modal.style.display='flex';
-    var ok=document.getElementById('customAlertOk');
-    function cleanup(){
-      modal.style.display='none';
-      ok.onclick=null;
-      modal.onclick=null;
-      resolve();
-    }
-    ok.onclick=cleanup;
-    modal.onclick=function(e){if(e.target===modal)cleanup();};
-  });
-}
-function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
-async function approveUser(uid,approve){
-  try{
-    var sess=null;
-    try{sess=JSON.parse(localStorage.getItem('baemin_session')||'null');}catch(e){}
-    var d=await baeminApi(approve?'approveUser':'rejectUser',{token:sess?sess.token:'',id:uid});
-    if(d.ok){await loadPendingUsers();}
-    else{await customAlert('처리 실패');}
-  }catch(e){await customAlert('서버 연결 실패');}
-}
-function switchAdminTab(tab){
-  document.getElementById('pendingList').style.display=tab==='pending'?'':'none';
-  document.getElementById('adminList').style.display=tab==='admins'?'':'none';
-  document.getElementById('blockedList').style.display=tab==='blocked'?'':'none';
-  document.getElementById('tabPending').style.background=tab==='pending'?'#FF9500':'#3a3a3c';
-  document.getElementById('tabPending').style.color=tab==='pending'?'#000':'#fff';
-  document.getElementById('tabAdmins').style.background=tab==='admins'?'#FF9500':'#3a3a3c';
-  document.getElementById('tabAdmins').style.color=tab==='admins'?'#000':'#fff';
-  document.getElementById('tabBlocked').style.background=tab==='blocked'?'#FF9500':'#3a3a3c';
-  document.getElementById('tabBlocked').style.color=tab==='blocked'?'#000':'#fff';
-  if(tab==='admins')loadAllUsers();
-  if(tab==='blocked')loadBlockedUsers();
-}
-async function loadAllUsers(){
-  var el=document.getElementById('adminList');
-  el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">불러오는 중...</div>';
-  try{
-    var sess=null;
-    try{sess=JSON.parse(localStorage.getItem('baemin_session')||'null');}catch(e){}
-    var d=await baeminApi('listAllUsers',{token:sess?sess.token:''});
-    if(!d.ok){el.innerHTML='<div style="color:#FF6B6B;text-align:center;padding:5vw;">조회 실패</div>';return;}
-    var list=d.result||[];
-    if(!list.length){el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">등록된 사용자가 없습니다.</div>';return;}
-    var h='<div style="color:#888;font-size:3.2vw;margin-bottom:3vw;">관리자는 모든 권한을 사용할 수 있습니다.</div>';
+    _unifiedUserCache=list;
+    if(!list.length){el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">사용자가 없습니다.</div>';updateBulkBar();return;}
+    var h='<div style="display:flex;align-items:center;gap:2vw;margin-bottom:2vw;padding:0 1vw;">'
+      +'<input type="checkbox" onchange="toggleSelectAll(this.checked)" style="width:5vw;height:5vw;accent-color:#FF9500;">'
+      +'<span style="color:#888;font-size:3.4vw;">전체 선택 ('+list.length+'명)</span></div>';
     list.forEach(function(u){
       var isAdmin=u.is_admin;
-      h+='<div style="display:flex;align-items:center;gap:3vw;background:#1c1c1e;border:1px solid #2c2c2e;border-radius:10px;padding:3vw 4vw;margin-bottom:2vw;">'
-        +'<div style="flex:1;"><div style="color:#fff;font-size:4.4vw;font-weight:900;">'+escapeHtml(u.name)+(isAdmin?' <span style="color:#FF9500;font-size:3.2vw;">👑관리자</span>':'')+'</div>'
-        +'<div style="color:#888;font-size:3.4vw;">@'+escapeHtml(u.id)+'</div></div>'
-        +(isAdmin
-          ?(u.id==='admin'?'<span style="color:#FF9500;font-size:3.4vw;font-weight:900;white-space:nowrap;">👑총관리자</span>':'<button onclick="setUserAdmin(\''+escapeHtml(u.id)+'\',false)" style="background:#3a3a3c;color:#FF6B6B;border:none;border-radius:8px;padding:2.5vw 4vw;font-size:3.8vw;font-weight:900;cursor:pointer;white-space:nowrap;">해임</button>')
-          :'<button onclick="setUserAdmin(\''+escapeHtml(u.id)+'\',true)" style="background:#FF9500;color:#000;border:none;border-radius:8px;padding:2.5vw 4vw;font-size:3.8vw;font-weight:900;cursor:pointer;white-space:nowrap;">임명</button>')
-        +'<button onclick="resetUserDevice(\''+escapeHtml(u.id)+'\')" title="기기 초기화" style="background:#3a3a3c;color:#5AA9FF;border:none;border-radius:8px;padding:2.5vw 3vw;font-size:3.8vw;cursor:pointer;">📱</button>'
-        +(u.id==='admin'?'':'<button onclick="blockUser(\''+escapeHtml(u.id)+'\')" style="background:#3a3a3c;color:#FF3B30;border:none;border-radius:8px;padding:2.5vw 3vw;font-size:3.8vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단</button>')
-        +'</div>';
+      var checked=_selectedUsers.has(u.id)?'checked':'';
+      h+='<div style="background:#1c1c1e;border:1px solid #2c2c2e;border-radius:10px;padding:3vw 4vw;margin-bottom:2vw;">'
+        +'<div style="display:flex;align-items:center;gap:3vw;">'
+        +'<input type="checkbox" id="cb_'+escapeHtml(u.id)+'" '+checked+' onchange="toggleUserSelect(\''+escapeHtml(u.id)+'\')" style="width:5vw;height:5vw;accent-color:#FF9500;flex-shrink:0;">'
+        +'<div style="flex:1;min-width:0;"><div style="color:#fff;font-size:4.2vw;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(u.name)
+        +(isAdmin?' <span style="color:#FF9500;font-size:3vw;">👑</span>':'')
+        +'</div>'
+        +'<div style="color:#888;font-size:3.2vw;">@'+escapeHtml(u.id)+' · '+statusLabel(u.status)+' · 가입 '+fmtDate(u.created_at)+(u.has_device?' · 📱':'')+'</div></div>'
+        +'</div>'
+        +'<div style="display:flex;gap:1.5vw;margin-top:2.5vw;flex-wrap:wrap;">';
+      if(u.status==='pending'){
+        h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'approve\')" style="flex:1;background:#34C759;color:#000;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">승인</button>'
+          +'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'reject\')" style="flex:1;background:#3a3a3c;color:#FF6B6B;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">거절</button>';
+      }
+      if(u.status==='approved'){
+        if(u.id==='admin'){
+          h+='<span style="color:#FF9500;font-size:3.2vw;font-weight:900;">👑총관리자</span>';
+        }else{
+          if(isAdmin){
+            h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'demote\')" style="background:#3a3a3c;color:#FF6B6B;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">해임</button>';
+          }else{
+            h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'promote\')" style="background:#FF9500;color:#000;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">임명</button>';
+          }
+          h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'resetDevice\')" title="기기 초기화" style="background:#3a3a3c;color:#5AA9FF;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;cursor:pointer;">📱</button>'
+            +'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'block\')" style="background:#3a3a3c;color:#FF3B30;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단</button>';
+        }
+      }
+      if(u.status==='blocked'){
+        h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'unblock\')" style="flex:1;background:#34C759;color:#000;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단해제</button>';
+      }
+      if(u.status==='rejected'){
+        h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'approve\')" style="flex:1;background:#34C759;color:#000;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">재승인</button>';
+      }
+      h+='</div></div>';
     });
     el.innerHTML=h;
+    updateBulkBar();
   }catch(e){el.innerHTML='<div style="color:#FF6B6B;text-align:center;padding:5vw;">오류 발생</div>';}
 }
-async function setUserAdmin(uid,makeAdmin){
-  if(!await customConfirm(makeAdmin?'이 사용자를 관리자로 임명하시겠습니까?':'이 사용자의 관리자 권한을 해임하시겠습니까?'))return;
+async function userRowAction(uid,action){
+  var msgs={
+    approve:'이 사용자를 승인하시겠습니까?',
+    reject:'이 사용자의 가입을 거절하시겠습니까?',
+    block:'이 사용자를 차단하시겠습니까?\n차단된 사용자는 로그인할 수 없습니다.',
+    unblock:'이 사용자의 차단을 해제하시겠습니까?',
+    promote:'이 사용자를 관리자로 임명하시겠습니까?',
+    demote:'이 사용자의 관리자 권한을 해임하시겠습니까?',
+    resetDevice:'이 사용자의 기기 바인딩을 초기화하시겠습니까?\n다음 로그인 시 현재 기기로 재등록됩니다.'
+  };
+  if(!await customConfirm(msgs[action]||'실행하시겠습니까?'))return;
   try{
     var sess=null;
     try{sess=JSON.parse(localStorage.getItem('baemin_session')||'null');}catch(e){}
-    var d=await baeminApi('setAdmin',{token:sess?sess.token:'',id:uid,makeAdmin:makeAdmin});
-    if(d.ok){await loadAllUsers();}
-    else{await customAlert('처리 실패: '+(d.error||''));}
+    var d;
+    if(action==='approve')d=await baeminApi('approveUser',{token:sess?sess.token:'',id:uid});
+    else if(action==='reject')d=await baeminApi('rejectUser',{token:sess?sess.token:'',id:uid});
+    else if(action==='block')d=await baeminApi('blockUser',{token:sess?sess.token:'',id:uid});
+    else if(action==='unblock')d=await baeminApi('unblockUser',{token:sess?sess.token:'',id:uid});
+    else if(action==='promote')d=await baeminApi('setAdmin',{token:sess?sess.token:'',id:uid,makeAdmin:true});
+    else if(action==='demote')d=await baeminApi('setAdmin',{token:sess?sess.token:'',id:uid,makeAdmin:false});
+    else if(action==='resetDevice')d=await baeminApi('resetDevice',{token:sess?sess.token:'',id:uid});
+    if(d&&d.ok){await loadUnifiedUsers();await updatePendingBadge();}
+    else{await customAlert('처리 실패: '+((d&&d.error)||''));}
   }catch(e){await customAlert('서버 연결 실패');}
 }
-async function resetUserDevice(uid){
-  if(!await customConfirm('이 사용자의 기기 바인딩을 초기화하시겠습니까?\n다음 로그인 시 현재 기기로 재등록됩니다.'))return;
+async function bulkUserAction(action){
+  if(_selectedUsers.size===0)return;
+  var names={approve:'승인',reject:'거절',block:'차단',unblock:'차단해제'};
+  if(!await customConfirm(_selectedUsers.size+'명을 일괄 '+(names[action]||action)+'하시겠습니까?'))return;
   try{
     var sess=null;
     try{sess=JSON.parse(localStorage.getItem('baemin_session')||'null');}catch(e){}
-    var d=await baeminApi('resetDevice',{token:sess?sess.token:'',id:uid});
-    if(d.ok){await customAlert('기기 바인딩이 초기화되었습니다.');}
-    else{await customAlert('처리 실패');}
+    var d=await baeminApi('bulkUserAction',{token:sess?sess.token:'',ids:Array.from(_selectedUsers),action:action});
+    if(d&&d.ok){
+      _selectedUsers.clear();
+      await loadUnifiedUsers();
+      await updatePendingBadge();
+      await customAlert(d.result.count+'명 처리되었습니다.');
+    }else{await customAlert('처리 실패: '+((d&&d.error)||''));}
   }catch(e){await customAlert('서버 연결 실패');}
 }
-async function blockUser(uid){
-  if(!await customConfirm('이 사용자를 차단하시겠습니까?\n차단된 사용자는 로그인할 수 없습니다.'))return;
+async function updatePendingBadge(){
   try{
     var sess=null;
     try{sess=JSON.parse(localStorage.getItem('baemin_session')||'null');}catch(e){}
-    var d=await baeminApi('blockUser',{token:sess?sess.token:'',id:uid});
-    if(d.ok){await loadAllUsers();await customAlert('차단되었습니다.');}
-    else{await customAlert('처리 실패: '+(d.error||''));}
-  }catch(e){await customAlert('서버 연결 실패');}
+    if(!sess||!sess.token)return;
+    var d=await baeminApi('getPendingCount',{token:sess.token});
+    var btn=document.getElementById('adminBtn');
+    if(!btn)return;
+    var n=d.ok?(d.result.pending||0):0;
+    var badge=document.getElementById('pendingBadge');
+    if(n>0){
+      if(!badge){
+        badge=document.createElement('span');
+        badge.id='pendingBadge';
+        badge.style.cssText='position:absolute;top:-1.5vw;right:-1.5vw;background:#FF3B30;color:#fff;font-size:3vw;font-weight:900;min-width:5vw;height:5vw;line-height:5vw;text-align:center;border-radius:50%;padding:0 1vw;';
+        btn.style.position='relative';
+        btn.appendChild(badge);
+      }
+      badge.textContent=n>99?'99+':n;
+      badge.style.display='';
+    }else if(badge){
+      badge.style.display='none';
+    }
+  }catch(e){}
 }
-async function unblockUser(uid){
-  if(!await customConfirm('이 사용자의 차단을 해제하시겠습니까?'))return;
-  try{
-    var sess=null;
-    try{sess=JSON.parse(localStorage.getItem('baemin_session')||'null');}catch(e){}
-    var d=await baeminApi('unblockUser',{token:sess?sess.token:'',id:uid});
-    if(d.ok){await loadBlockedUsers();}
-    else{await customAlert('처리 실패');}
-  }catch(e){await customAlert('서버 연결 실패');}
+async function openApproval(){
+  document.getElementById('approvalModal').style.display='block';
+  _userStatusFilter='';
+  _userSearchQuery='';
+  _selectedUsers.clear();
+  var si=document.getElementById('userSearchInput');
+  if(si)si.value='';
+  var btns=document.getElementById('userStatusFilters').querySelectorAll('button');
+  btns.forEach(function(b){
+    var active=b.getAttribute('data-status')==='';
+    b.style.background=active?'#FF9500':'#3a3a3c';
+    b.style.color=active?'#000':'#fff';
+  });
+  await loadUnifiedUsers();
 }
-async function loadBlockedUsers(){
-  var el=document.getElementById('blockedList');
-  el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">불러오는 중...</div>';
-  try{
-    var sess=null;
-    try{sess=JSON.parse(localStorage.getItem('baemin_session')||'null');}catch(e){}
-    var d=await baeminApi('listBlockedUsers',{token:sess?sess.token:''});
-    if(!d.ok){el.innerHTML='<div style="color:#FF6B6B;text-align:center;padding:5vw;">조회 실패</div>';return;}
-    var list=d.result||[];
-    if(!list.length){el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">차단된 사용자가 없습니다.</div>';return;}
-    var h='<div style="color:#888;font-size:3.2vw;margin-bottom:3vw;">차단된 사용자는 로그인할 수 없습니다.</div>';
-    list.forEach(function(u){
-      h+='<div style="display:flex;align-items:center;gap:3vw;background:#1c1c1e;border:1px solid #2c2c2e;border-radius:10px;padding:3vw 4vw;margin-bottom:2vw;">'
-        +'<div style="flex:1;"><div style="color:#fff;font-size:4.4vw;font-weight:900;">'+escapeHtml(u.name)+'</div>'
-        +'<div style="color:#888;font-size:3.4vw;">@'+escapeHtml(u.id)+'</div></div>'
-        +'<button onclick="unblockUser(\''+escapeHtml(u.id)+'\')" style="background:#34C759;color:#000;border:none;border-radius:8px;padding:2.5vw 4vw;font-size:3.8vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단해제</button>'
-        +'</div>';
-    });
-    el.innerHTML=h;
-  }catch(e){el.innerHTML='<div style="color:#FF6B6B;text-align:center;padding:5vw;">오류 발생</div>';}
+function closeApproval(){
+  document.getElementById('approvalModal').style.display='none';
 }
-</script><div id='approvalModal' class='modal' style='display:none;'><div class='modal-box'><div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:4vw;'><div class='sec-title' style='margin:0;'>👥 관리자 메뉴</div><button class='btn' style='background:#3a3a3c;color:#fff;padding:2vw 3vw;font-size:3.8vw;' onclick='closeApproval()'>✕</button></div><div style='display:flex;gap:2vw;margin-bottom:4vw;'><button id='tabPending' onclick="switchAdminTab('pending')" style='flex:1;background:#FF9500;color:#000;border:none;border-radius:8px;padding:2.5vw;font-size:3.8vw;font-weight:900;cursor:pointer;'>가입 승인</button><button id='tabAdmins' onclick="switchAdminTab('admins')" style='flex:1;background:#3a3a3c;color:#fff;border:none;border-radius:8px;padding:2.5vw;font-size:3.8vw;font-weight:900;cursor:pointer;'>관리자 임명</button><button id='tabBlocked' onclick="switchAdminTab('blocked')" style='flex:1;background:#3a3a3c;color:#fff;border:none;border-radius:8px;padding:2.5vw;font-size:3.8vw;font-weight:900;cursor:pointer;'>차단 관리</button></div><div id='pendingList'></div><div id='adminList' style='display:none;'></div><div id='blockedList' style='display:none;'></div></div></div><div id='toast'></div>
+</script><div id='approvalModal' class='modal' style='display:none;'><div class='modal-box' style='max-height:85vh;display:flex;flex-direction:column;'><div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:3vw;'><div class='sec-title' style='margin:0;'>👥 회원 관리</div><button class='btn' style='background:#3a3a3c;color:#fff;padding:2vw 3vw;font-size:3.8vw;' onclick='closeApproval()'>✕</button></div><div style='display:flex;gap:2vw;margin-bottom:3vw;'><input id='userSearchInput' placeholder='이름/아이디 검색' oninput='onUserSearchInput()' style='flex:1;background:#2c2c2e;color:#fff;border:1px solid #3a3a3c;border-radius:8px;padding:2.5vw 3vw;font-size:3.8vw;outline:none;'></div><div style='display:flex;gap:1.5vw;margin-bottom:3vw;flex-wrap:wrap;' id='userStatusFilters'><button data-status='' onclick="setUserStatusFilter('')" style='flex:1;min-width:15vw;background:#FF9500;color:#000;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;'>전체</button><button data-status='pending' onclick="setUserStatusFilter('pending')" style='flex:1;min-width:15vw;background:#3a3a3c;color:#fff;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;'>대기</button><button data-status='approved' onclick="setUserStatusFilter('approved')" style='flex:1;min-width:15vw;background:#3a3a3c;color:#fff;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;'>승인됨</button><button data-status='blocked' onclick="setUserStatusFilter('blocked')" style='flex:1;min-width:15vw;background:#3a3a3c;color:#fff;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;'>차단</button></div><div id='userBulkBar' style='display:none;align-items:center;gap:2vw;margin-bottom:3vw;background:#2c2c2e;border-radius:8px;padding:2.5vw 3vw;'><span id='userBulkCount' style='color:#FF9500;font-size:3.6vw;font-weight:900;'></span><div style='flex:1;'></div><button onclick="bulkUserAction('approve')" style='background:#34C759;color:#000;border:none;border-radius:8px;padding:2vw 3.5vw;font-size:3.4vw;font-weight:900;cursor:pointer;'>승인</button><button onclick="bulkUserAction('reject')" style='background:#3a3a3c;color:#FF6B6B;border:none;border-radius:8px;padding:2vw 3.5vw;font-size:3.4vw;font-weight:900;cursor:pointer;'>거절</button><button onclick="bulkUserAction('block')" style='background:#3a3a3c;color:#FF3B30;border:none;border-radius:8px;padding:2vw 3.5vw;font-size:3.4vw;font-weight:900;cursor:pointer;'>차단</button><button onclick="bulkUserAction('unblock')" style='background:#3a3a3c;color:#5AA9FF;border:none;border-radius:8px;padding:2vw 3.5vw;font-size:3.4vw;font-weight:900;cursor:pointer;'>해제</button></div><div id='unifiedUserList' style='overflow-y:auto;flex:1;min-height:30vh;'></div></div></div><div id='toast'></div>
 <div id='customConfirmModal' style='display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:20000;align-items:center;justify-content:center;'>
   <div style='background:#1c1c1e;border:1px solid #2c2c2e;border-radius:16px;padding:6vw;margin:0 8vw;max-width:80vw;'>
     <div id='customConfirmMsg' style='color:#fff;font-size:4.2vw;font-weight:700;line-height:1.5;margin-bottom:6vw;white-space:pre-line;'></div>
