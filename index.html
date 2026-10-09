@@ -146,6 +146,9 @@ window.addEventListener('popstate',function(e){
     if(el&&el.style.display==='block'){el.style.display='none';}
   }
 });
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 var _userStatusFilter='';
 var _userSearchQuery='';
 var _userSearchTimer=null;
