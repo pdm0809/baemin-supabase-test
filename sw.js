@@ -1,3 +1,13 @@
-self.addEventListener('install', function(e) { self.skipWaiting(); });
-self.addEventListener('activate', function(e) { e.waitUntil(self.clients.claim()); });
-self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });
+self.addEventListener('install', function(e) {
+  e.waitUntil(self.skipWaiting());
+});
+self.addEventListener('activate', function(e) {
+  e.waitUntil(self.clients.claim());
+});
+self.addEventListener('fetch', function(e) {
+  e.respondWith(
+    fetch(e.request).catch(function() {
+      return new Response('offline', { status: 503 });
+    })
+  );
+});
