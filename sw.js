@@ -1,4 +1,4 @@
-const CACHE_NAME = 'baemin-v1';
+const CACHE_NAME = 'baemin-v2';
 const APP_SHELL = [
   '/baemin-supabase-test/',
   '/baemin-supabase-test/index.html',
