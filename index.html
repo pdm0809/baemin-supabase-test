@@ -146,6 +146,38 @@ window.addEventListener('popstate',function(e){
     if(el&&el.style.display==='block'){el.style.display='none';}
   }
 });
+function customConfirm(msg){
+  return new Promise(function(resolve){
+    var modal=document.getElementById('customConfirmModal');
+    var msgEl=document.getElementById('customConfirmMsg');
+    var okBtn=document.getElementById('customConfirmOk');
+    var cancelBtn=document.getElementById('customConfirmCancel');
+    msgEl.textContent=msg;
+    modal.style.display='flex';
+    function cleanup(val){
+      modal.style.display='none';
+      okBtn.onclick=null;
+      cancelBtn.onclick=null;
+      resolve(val);
+    }
+    okBtn.onclick=function(){cleanup(true);};
+    cancelBtn.onclick=function(){cleanup(false);};
+  });
+}
+function customAlert(msg){
+  return new Promise(function(resolve){
+    var modal=document.getElementById('customAlertModal');
+    var msgEl=document.getElementById('customAlertMsg');
+    var okBtn=document.getElementById('customAlertOk');
+    msgEl.textContent=msg;
+    modal.style.display='flex';
+    okBtn.onclick=function(){
+      modal.style.display='none';
+      okBtn.onclick=null;
+      resolve();
+    };
+  });
+}
 function escapeHtml(s){
   return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
