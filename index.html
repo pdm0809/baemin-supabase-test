@@ -4,10 +4,15 @@
   const API_KEY = 'b8967e87235b99394147a9ed98a48d50e7d3007bddad0f30ee7e1579aec53e27';
   
   function callServer(fnName, args, onSuccess, onFailure) {
+    var token = null;
+    try {
+      var s = JSON.parse(localStorage.getItem('baemin_session') || 'null');
+      if (s && s.token) token = s.token;
+    } catch(e) {}
     fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
-      body: JSON.stringify({ action: fnName, args: args })
+      body: JSON.stringify({ action: fnName, args: args, token: token })
     })
     .then(r => r.json())
     .then(d => {
