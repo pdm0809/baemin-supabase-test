@@ -311,7 +311,7 @@ async function loadUnifiedUsers(){
           }else{
             h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'promote\')" style="background:#FF9500;color:#000;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">임명</button>';
           }
-          h+=(u.has_device?'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'resetDevice\')" title="기기 초기화" style="background:#3a3a3c;color:#5AA9FF;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;cursor:pointer;">📱</button>':'');
+          h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'resetDevice\')" title="기기 초기화" style="background:#3a3a3c;color:#5AA9FF;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;cursor:pointer;">📱</button>';
             +'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'block\')" style="background:#3a3a3c;color:#FF3B30;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단</button>';
         }
       }
