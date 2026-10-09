@@ -215,7 +215,7 @@ async function loadAllUsers(){
         +'<div style="flex:1;"><div style="color:#fff;font-size:4.4vw;font-weight:900;">'+escapeHtml(u.name)+(isAdmin?' <span style="color:#FF9500;font-size:3.2vw;">👑관리자</span>':'')+'</div>'
         +'<div style="color:#888;font-size:3.4vw;">@'+escapeHtml(u.id)+'</div></div>'
         +(isAdmin
-          ?'<button onclick="setUserAdmin(\''+escapeHtml(u.id)+'\',false)" style="background:#3a3a3c;color:#FF6B6B;border:none;border-radius:8px;padding:2.5vw 4vw;font-size:3.8vw;font-weight:900;cursor:pointer;white-space:nowrap;">해임</button>'
+          ?(u.id==='admin'?'<span style="color:#FF9500;font-size:3.4vw;font-weight:900;white-space:nowrap;">👑총관리자</span>':'<button onclick="setUserAdmin(\''+escapeHtml(u.id)+'\',false)" style="background:#3a3a3c;color:#FF6B6B;border:none;border-radius:8px;padding:2.5vw 4vw;font-size:3.8vw;font-weight:900;cursor:pointer;white-space:nowrap;">해임</button>')
           :'<button onclick="setUserAdmin(\''+escapeHtml(u.id)+'\',true)" style="background:#FF9500;color:#000;border:none;border-radius:8px;padding:2.5vw 4vw;font-size:3.8vw;font-weight:900;cursor:pointer;white-space:nowrap;">임명</button>')
         +'<button onclick="resetUserDevice(\''+escapeHtml(u.id)+'\')" title="기기 초기화" style="background:#3a3a3c;color:#5AA9FF;border:none;border-radius:8px;padding:2.5vw 3vw;font-size:3.8vw;cursor:pointer;">📱</button>'
         +'</div>';
