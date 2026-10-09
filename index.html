@@ -442,6 +442,8 @@ function closeApproval(){
   var y=window._mCalY,m=window._mCalM;
   var first=new Date(y,m,1).getDay();
   var last=new Date(y,m+1,0).getDate();
+  var today=new Date();
+  var todayStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
   var h='<div style="background:#1c1c1e;border-radius:16px;padding:5vw 4vw;">';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4vw;">';
   h+='<button class="btn" style="background:#2c2c2e;color:#fff;width:10vw;height:10vw;border-radius:50%;font-size:4vw;" onclick="_mCalMove(-1)">◀</button>';
@@ -456,13 +458,19 @@ function closeApproval(){
     var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     var cnt=dateCounts[ds]||0;
     var isSel=ds===window._mCalSel;
+    var isPast=ds<todayStr;
+    var isToday=ds===todayStr;
     var cell='display:flex;flex-direction:column;align-items:center;justify-content:center;aspect-ratio:1;border-radius:50%;font-size:4.4vw;';
-    if(cnt>0&&isSel){
+    if(isToday){
+      h+='<div style="'+cell+'color:#3a3a3c;">'+d+'</div>';
+    }else if(cnt>0&&isSel){
       h+='<div style="'+cell+'background:#0A84FF;color:#fff;font-weight:900;"><div>'+d+'</div><div style="font-size:2.6vw;">'+cnt+'건</div></div>';
     }else if(cnt>0){
       h+='<div data-ds="'+ds+'" onclick="_mCalPick(this)" style="'+cell+'cursor:pointer;background:#FF9500;color:#000;font-weight:900;"><div>'+d+'</div><div style="font-size:2.6vw;">'+cnt+'건</div></div>';
+    }else if(isPast){
+      h+='<div data-ds="'+ds+'" onclick="_mCalPick(this)" style="'+cell+'cursor:pointer;color:#fff;background:#2c2c2e;">'+d+'</div>';
     }else{
-      h+='<div style="'+cell+'color:#888;">'+d+'</div>';
+      h+='<div style="'+cell+'color:#3a3a3c;">'+d+'</div>';
     }
   }
   h+='</div></div>';
