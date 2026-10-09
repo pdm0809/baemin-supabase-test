@@ -103,6 +103,7 @@ async function doLogin(){
       else if(d.error==='BLOCKED')msg='차단된 계정입니다. 관리자에게 문의하세요.';
       else if(d.error==='DEVICE_MISMATCH')msg='등록된 기기에서만 로그인 가능합니다. 관리자에게 문의하세요.';
       else if(d.error==='DEVICE_REQUIRED')msg='기기 정보를 확인할 수 없습니다.';
+      else if(d.error&&d.error.startsWith('DEVICE_ALREADY_USED')){var ex=d.error.split(':')[1]||'';msg='이 기기에서 이미 가입 신청한 계정이 있습니다 (@'+ex+').';}
       errEl.textContent=msg;
     }
   }catch(e){errEl.textContent='서버 연결 실패';}
@@ -123,7 +124,10 @@ async function doRegister(){
       await customAlert('승인 대기 중입니다. 관리자의 승인을 기다려주세요.');
       showLoginForm();
     }else{
-      errEl.textContent=d.error==='ID_EXISTS'?'이미 사용 중인 아이디입니다.':'가입 신청 실패';
+      var rmsg='가입 신청 실패';
+      if(d.error==='ID_EXISTS')rmsg='이미 사용 중인 아이디입니다.';
+      else if(d.error&&d.error.startsWith('DEVICE_ALREADY_USED')){var ex2=d.error.split(':')[1]||'';rmsg='이 기기에서 이미 가입 신청한 계정이 있습니다 (@'+ex2+').';}
+      errEl.textContent=rmsg;
     }
   }catch(e){errEl.textContent='서버 연결 실패';}
 }
