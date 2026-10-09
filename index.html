@@ -135,13 +135,18 @@ function applySessionUI(s){
   }catch(e){}
 }
 function doLogout(){
-  try{localStorage.removeItem('baemin_session');}catch(e){}
+  try{localStorage.clear();}catch(e){}
   try{sessionStorage.clear();}catch(e){}
   try{
-    var loginScreen=document.getElementById('security-login-screen');
-    if(loginScreen)loginScreen.style.display='flex';
+    document.cookie.split(";").forEach(function(c){
+      document.cookie=c.replace(/^ +/,"").replace(/=.*/,"=;expires="+new Date(0).toUTCString()+";path=/");
+    });
   }catch(e){}
-  setTimeout(function(){location.reload(true);},100);
+  var ls=document.getElementById('security-login-screen');
+  if(ls){ls.style.display='flex';ls.style.zIndex='99999';}
+  var cards=document.getElementById('cards');
+  if(cards)cards.style.display='none';
+  setTimeout(function(){location.href=location.href.split('?')[0]+'?t='+Date.now();},200);
 }
 var _modalHistoryPushed=false;
 
