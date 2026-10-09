@@ -115,10 +115,12 @@ async function doWebAuthnLogin(){
   if(!id){errEl.textContent='아이디를 입력하세요.';return;}
   errEl.textContent='지문 인증 중...';
   try{
-    var st=await baeminApi('webauthn_login_start',{id:id});
-    if(!st.ok){errEl.textContent=(st.error==='NO_CREDENTIAL')?'등록된 지문 기기가 없습니다.':'지문 인증 시작 실패';return;}
+    var st=await baeminApi('webauthn_login_start',{userId:id});
+    if(!st.ok){errEl.textContent=(st.error==='NO_CREDENTIALS')?'등록된 지문 기기가 없습니다.':'지문 인증 시작 실패';return;}
+    if(!st.result||!st.result.challengeId){errEl.textContent='지문 인증 시작 실패';return;}
+    var challengeId=st.result.challengeId;
     var asseResp=await SimpleWebAuthnBrowser.startAuthentication(st.result.options);
-    var fin=await baeminApi('webauthn_login_finish',{id:id,assertion:asseResp});
+    var fin=await baeminApi('webauthn_login_finish',{challengeId:challengeId,credential:asseResp,deviceId:getDeviceId()});
     if(fin.ok){
       var s={token:fin.result.token,name:fin.result.name,isAdmin:!!fin.result.isAdmin,loginAt:Date.now()};
       try{localStorage.setItem('baemin_session',JSON.stringify(s));}catch(e){}
@@ -126,7 +128,7 @@ async function doWebAuthnLogin(){
       document.getElementById('security-login-screen').style.display='none';
     }else{
       var msg='지문 로그인 실패';
-      if(fin.error==='NOT_FOUND')msg='등록되지 않은 아이디입니다.';
+      if(fin.error==='NOT_FOUND'||fin.error==='USER_NOT_FOUND')msg='등록되지 않은 아이디입니다.';
       else if(fin.error==='AUTH_FAILED')msg='지문 인증에 실패했습니다.';
       errEl.textContent=msg;
     }
@@ -154,17 +156,17 @@ async function loadWebAuthnDevices(){
   if(!s||!s.token){el.innerHTML='';return;}
   el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">조회 중...</div>';
   try{
-    var d=await baeminApi('webauthn_devices_list',{token:s.token});
+    var d=await baeminApi('webauthn_credential_list',{token:s.token});
     if(!d.ok){el.innerHTML='<div style="color:#FF3B30;text-align:center;">조회 실패</div>';return;}
-    var devs=(d.result&&d.result.devices)||[];
+    var devs=d.result||[];
     if(devs.length===0){el.innerHTML='<div style="color:#888;text-align:center;padding:5vw;">등록된 지문 기기가 없습니다.</div>';return;}
     var h='';
     for(var i=0;i<devs.length;i++){
       var dv=devs[i];
       h+='<div style="display:flex;align-items:center;gap:3vw;background:#1c1c1e;border:1px solid #2c2c2e;border-radius:10px;padding:3vw 4vw;margin-bottom:2vw;">';
-      h+='<div style="flex:1;min-width:0;"><div style="color:#fff;font-size:4.2vw;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+waEscapeHtml(dv.deviceName||'(이름 없음)')+'</div>';
-      h+='<div style="color:#888;font-size:3.2vw;">등록 '+waFmtDate(dv.createdAt)+' · 최근 사용 '+waFmtDate(dv.lastUsedAt)+'</div></div>';
-      h+='<button class="btn" style="background:#3a3a3c;color:#FF6B6B;padding:2vw 3vw;font-size:3.6vw;white-space:nowrap;" onclick="webAuthnDeleteDevice(\''+String(dv.credentialId||'').replace(/[^A-Za-z0-9_\-]/g,'')+'\')">삭제</button></div>';
+      h+='<div style="flex:1;min-width:0;"><div style="color:#fff;font-size:4.2vw;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+waEscapeHtml(dv.device_name||'(이름 없음)')+'</div>';
+      h+='<div style="color:#888;font-size:3.2vw;">등록 '+waFmtDate(dv.created_at)+'</div></div>';
+      h+='<button class="btn" style="background:#3a3a3c;color:#FF6B6B;padding:2vw 3vw;font-size:3.6vw;white-space:nowrap;" onclick="webAuthnDeleteDevice(\''+String(dv.credential_id||'').replace(/[^A-Za-z0-9_\-]/g,'')+'\')">삭제</button></div>';
     }
     el.innerHTML=h;
   }catch(e){el.innerHTML='<div style="color:#FF3B30;text-align:center;">조회 실패</div>';}
@@ -180,9 +182,10 @@ async function webAuthnRegister(){
   msgEl.textContent='지문 등록 중... 기기의 안내를 따르세요.';
   try{
     var st=await baeminApi('webauthn_register_start',{token:s.token});
-    if(!st.ok){msgEl.textContent='등록 시작 실패';return;}
+    if(!st.ok||!st.result||!st.result.challengeId){msgEl.textContent='등록 시작 실패';return;}
+    var challengeId=st.result.challengeId;
     var attResp=await SimpleWebAuthnBrowser.startRegistration(st.result.options);
-    var fin=await baeminApi('webauthn_register_finish',{token:s.token,attestation:attResp,deviceName:name,deviceId:getDeviceId()});
+    var fin=await baeminApi('webauthn_register_finish',{token:s.token,challengeId:challengeId,credential:attResp,deviceName:name,deviceId:getDeviceId()});
     if(fin.ok){msgEl.style.color='#34C759';msgEl.textContent='등록 완료';loadWebAuthnDevices();setTimeout(function(){msgEl.style.color='#FF6B6B';},100);}
     else{msgEl.textContent='등록 실패';}
   }catch(e){
@@ -197,7 +200,7 @@ async function webAuthnDeleteDevice(credentialId){
   var s=webAuthnSession();
   if(!s||!s.token)return;
   try{
-    var d=await baeminApi('webauthn_device_delete',{token:s.token,credentialId:credentialId});
+    var d=await baeminApi('webauthn_credential_delete',{token:s.token,credentialId:credentialId});
     if(d.ok){loadWebAuthnDevices();}
     else{document.getElementById('webauthnMsg').textContent='삭제 실패';}
   }catch(e){document.getElementById('webauthnMsg').textContent='서버 연결 실패';}
