@@ -428,9 +428,16 @@ function updateBulkBar(){
 function statusLabel(s){
   if(s==='pending')return '<span style="color:#FF9500;font-weight:900;">대기</span>';
   if(s==='approved')return '<span style="color:#34C759;font-weight:900;">승인됨</span>';
-  if(s==='blocked')return '<span style="color:#FF3B30;font-weight:900;">차단됨</span>';
-  if(s==='rejected')return '<span style="color:#888;font-weight:900;">거절됨</span>';
+  if(s==='blocked')return '<span style="color:#888;font-weight:900;">차단됨</span>';
+  if(s==='rejected')return '<span style="color:#FF6B6B;font-weight:900;">거절됨</span>';
   return s;
+}
+function statusAccent(s){
+  if(s==='pending')return '#FF9500';
+  if(s==='approved')return '#34C759';
+  if(s==='blocked')return '#666';
+  if(s==='rejected')return '#FF3B30';
+  return '#2c2c2e';
 }
 function fmtDate(iso){
   try{
@@ -459,7 +466,9 @@ async function loadUnifiedUsers(){
     list.forEach(function(u){
       var isAdmin=u.is_admin;
       var checked=_selectedUsers.has(u.id)?'checked':'';
-      h+='<div style="background:#1c1c1e;border:1px solid #2c2c2e;border-radius:10px;padding:3vw 4vw;margin-bottom:2vw;">'
+      h+='<div style="display:flex;background:#1c1c1e;border:1px solid #2c2c2e;border-radius:10px;margin-bottom:2.5vw;overflow:hidden;">'
+        +'<div style="width:1.6vw;flex-shrink:0;background:'+statusAccent(u.status)+';"></div>'
+        +'<div style="flex:1;min-width:0;padding:3vw 4vw;">'
         +'<div style="display:flex;align-items:center;gap:3vw;">'
         +'<input type="checkbox" id="cb_'+escapeHtml(u.id)+'" '+checked+' onchange="toggleUserSelect(\''+escapeHtml(u.id)+'\')" style="width:5vw;height:5vw;accent-color:#FF9500;flex-shrink:0;">'
         +'<div style="flex:1;min-width:0;"><div style="color:#fff;font-size:4.2vw;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+escapeHtml(u.name)
@@ -467,31 +476,34 @@ async function loadUnifiedUsers(){
         +'</div>'
         +'<div style="color:#888;font-size:3.2vw;">@'+escapeHtml(u.id)+' · '+statusLabel(u.status)+' · 가입 '+fmtDate(u.created_at)+'</div></div>'
         +'</div>'
-        +'<div style="display:flex;gap:1.5vw;margin-top:2.5vw;flex-wrap:wrap;">';
+        +'<div style="display:flex;gap:2vw;margin-top:3vw;flex-wrap:wrap;">';
       if(u.status==='pending'){
         h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'approve\')" style="flex:1;background:#34C759;color:#000;border:none;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">승인</button>'
           +'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'reject\')" style="flex:1;background:#3a3a3c;color:#FF6B6B;border:1px solid #FF6B6B;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">거절</button>';
       }
       if(u.status==='approved'){
         if(u.id==='admin'){
-          h+='<span style="color:#FF9500;font-size:3.2vw;font-weight:900;">👑총관리자</span>';
+          h+='<span style="color:#FF9500;font-size:3.6vw;font-weight:900;">👑총관리자</span>';
         }else{
           if(isAdmin){
-            h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'demote\')" style="background:#3a3a3c;color:#FF6B6B;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">해임</button>';
+            h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'demote\')" style="flex:1;background:#3a3a3c;color:#FF6B6B;border:1px solid #FF6B6B;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">해임</button>';
           }else{
-            h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'promote\')" style="background:#FF9500;color:#000;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">임명</button>';
+            h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'promote\')" style="flex:1;background:#FF9500;color:#000;border:none;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">임명</button>';
           }
-          h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'resetDevice\')" title="기기 초기화" style="background:#3a3a3c;color:#5AA9FF;border:1px solid #5AA9FF;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;font-weight:700;cursor:pointer;white-space:nowrap;">기기 초기화</button>';
-            +'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'block\')" style="background:#3a3a3c;color:#FF3B30;border:none;border-radius:8px;padding:2vw 3vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단</button>';
+          h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'resetDevice\')" title="기기 초기화" style="flex:1;background:#3a3a3c;color:#5AA9FF;border:1px solid #5AA9FF;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:700;cursor:pointer;white-space:nowrap;">기기 초기화</button>'
+            +'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'block\')" style="flex:1;background:#3a3a3c;color:#FF3B30;border:1px solid #FF3B30;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단</button>';
         }
       }
       if(u.status==='blocked'){
-        h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'unblock\')" style="flex:1;background:#34C759;color:#000;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단해제</button>';
+        h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'unblock\')" style="flex:1;background:#34C759;color:#000;border:none;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단해제</button>'
+          +'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'delete\')" style="flex:1;background:#3a3a3c;color:#FF6B6B;border:1px dashed #FF6B6B;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">삭제</button>';
       }
       if(u.status==='rejected'){
-        h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'approve\')" style="flex:1;background:#34C759;color:#000;border:none;border-radius:8px;padding:2vw;font-size:3.4vw;font-weight:900;cursor:pointer;white-space:nowrap;">재승인</button>';
+        h+='<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'approve\')" style="flex:1;background:#34C759;color:#000;border:none;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">재승인</button>'
+          +'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'block\')" style="flex:1;background:#3a3a3c;color:#FF3B30;border:1px solid #FF3B30;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">차단</button>'
+          +'<button onclick="userRowAction(\''+escapeHtml(u.id)+'\',\'delete\')" style="flex:1;background:#3a3a3c;color:#FF6B6B;border:1px dashed #FF6B6B;border-radius:8px;padding:2.8vw;font-size:4vw;font-weight:900;cursor:pointer;white-space:nowrap;">삭제</button>';
       }
-      h+='</div></div>';
+      h+='</div></div></div>';
     });
     el.innerHTML=h;
     updateBulkBar();
@@ -506,6 +518,7 @@ async function userRowAction(uid,action){
     unblock:'이 사용자의 차단을 해제하시겠습니까?',
     promote:'이 사용자를 관리자로 임명하시겠습니까?',
     demote:'이 사용자의 관리자 권한을 해임하시겠습니까?',
+    delete:'이 사용자를 완전히 삭제하시겠습니까?\n삭제된 계정, 세션, 등록된 지문이 모두 제거되며 복구할 수 없습니다.',
     resetDevice:'이 사용자의 기기 바인딩을 초기화하시겠습니까?\n다음 로그인 시 현재 기기로 재등록됩니다.'
   };
   if(!await customConfirm(msgs[action]||'실행하시겠습니까?'))return;
@@ -520,6 +533,7 @@ async function userRowAction(uid,action){
     else if(action==='promote')d=await baeminApi('setAdmin',{token:sess?sess.token:'',id:uid,makeAdmin:true});
     else if(action==='demote')d=await baeminApi('setAdmin',{token:sess?sess.token:'',id:uid,makeAdmin:false});
     else if(action==='resetDevice')d=await baeminApi('resetDevice',{token:sess?sess.token:'',id:uid});
+    else if(action==='delete')d=await baeminApi('deleteUser',{token:sess?sess.token:'',id:uid});
     if(d&&d.ok){await loadUnifiedUsers();await updatePendingBadge();}
     else{await customAlert('처리 실패: '+((d&&d.error)||''));}
   }catch(e){await customAlert('서버 연결 실패');}
