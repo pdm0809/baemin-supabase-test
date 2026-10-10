@@ -699,12 +699,12 @@ function closeApproval(){
   var dv=document.getElementById('dateView');
   if(dv&&dv.style.display!=='none'&&dv.style.display!==''){hideDateView();return;}
   if(document.getElementById('personalRateView').style.display==='block'){hidePersonalRates();}
-  else if(document.getElementById('histDateView').style.display==='block'){hideHistDatePicker();}
-  else if(document.getElementById('searchHistView').style.display==='block'){hideSearchHistPicker();}
-  else if(document.getElementById('searchModal').style.display==='block'){closeSearchModal();}
+  else if(document.getElementById('histDateView').style.display==='block'){hideHistDatePicker();try{history.pushState({histClosed:true},'');}catch(e2){}}
+  else if(document.getElementById('searchHistView').style.display==='block'){hideSearchHistPicker();try{history.pushState({histClosed:true},'');}catch(e2){}}
+  else if(document.getElementById('searchModal').style.display==='block'){closeSearchModal();try{history.pushState({searchClosed:true},'');}catch(e2){}}
   else if(document.getElementById('missionCalWrap')&&document.getElementById('missionCalWrap').style.display==='block'){closeMissionCal();}
   else if(document.getElementById('confirmModal').style.display==='flex'||document.getElementById('confirmModal').style.display==='block'){closeConfirmModal();}
-  else if(document.getElementById('riderModal').style.display==='block'){closeRiders();}
+  else if(document.getElementById('riderModal').style.display==='block'){closeRiders();try{history.pushState({riderClosed:true},'');}catch(e2){}}
   else if(document.getElementById('missionModal').style.display==='block'){closeMissions();}
   else if(document.getElementById('attendModal').style.display==='block'&&document.getElementById('attendDetail').style.display!=='none'){if(lastQueryType==='workhours'){backToWorkHoursList();}else{hideAttendDetail();}}
   else if(document.getElementById('attendModal').style.display==='block'){closeAttendance();}
@@ -722,17 +722,7 @@ function closeApproval(){
       return _origOpen(name);
     };
   }
-  window.addEventListener('popstate',function(e){
-    var modals = ['riderModal','searchModal','histDateView','searchHistView','personalRateView','dateView'];
-    for(var i=0;i<modals.length;i++){
-      var m = document.getElementById(modals[i]);
-      if(m && m.style.display!=='none' && m.style.display!==''){
-        m.style.display='none';
-        try{history.pushState({modalClosed:true},'');}catch(e2){}
-        return;
-      }
-    }
-  });
+  window.
 })();
 </script>
 </body></html>
