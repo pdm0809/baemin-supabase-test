@@ -80,7 +80,7 @@ async function baeminApi(action,params){
 var KAKAO_REST_API_KEY='e490cc3acce1987e8d64fb4a3c063e99';
 var KAKAO_REDIRECT_URI='https://pdm0809.github.io/baemin-supabase-test/';
 function doKakaoLogin(){
-  var url='https://kauth.kakao.com/oauth/authorize?client_id='+encodeURIComponent(KAKAO_REST_API_KEY)+'&redirect_uri='+encodeURIComponent(KAKAO_REDIRECT_URI)+'&response_type=code';
+  var url='https://kauth.kakao.com/oauth/authorize?client_id='+encodeURIComponent(KAKAO_REST_API_KEY)+'&redirect_uri='+encodeURIComponent(KAKAO_REDIRECT_URI)+'&response_type=code&scope=profile_nickname';
   location.href=url;
 }
 // [TEST ONLY] 테스트 환경 전용 관리자 로그인 (URL에 ?test=1 필요)
