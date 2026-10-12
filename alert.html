@@ -72,7 +72,7 @@ async function baeminApi(action, params={}) {
 async function loadAlerts() {
   try {
     // 세션 토큰 가져오기 (메인 사이트와 공유)
-    try { const s = JSON.parse(localStorage.getItem('baemin_session')||'null'); if (s) sessionToken = s.token; } catch(e){}
+    try { const s = JSON.parse(localStorage.getItem('baemin_session_test')||'null'); if (s) sessionToken = s.token; } catch(e){}
     const res = await baeminApi('getAlertRules');
     alerts = res.rules || [];
   } catch(e) {
