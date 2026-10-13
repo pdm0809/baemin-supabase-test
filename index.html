@@ -879,7 +879,7 @@ function renderMissionDetail(){
   h+='</div>';
 
   // 라이더 테이블 (스크롤)
-  h+='<div style="max-height:68vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;min-height:0;flex-shrink:1">';
+  h+='<div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;min-height:0">';
   h+='<table class="msn-rtbl"><thead><tr><th style="width:36%">라이더 정보</th><th style="width:38%">기본 미션 현황</th><th>추가 미션 현황</th></tr></thead><tbody>';
   if(!rows.length){
     h+='<tr><td colspan="3" style="padding:24px 0;text-align:center;color:#8e8e93">'+(all.length?'해당 상태의 라이더가 없어요':'라이더 데이터가 없어요')+'</td></tr>';
