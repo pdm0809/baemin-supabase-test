@@ -624,6 +624,9 @@ function closeApproval(){
 .msn-tbl td::before{content:attr(data-label);color:#a1a1a6;font-size:13px;font-weight:700;flex:none;}
 .msn-tbl td.msn-st{position:absolute;top:12px;right:14px;width:auto;padding:0;}
 .msn-tbl td.msn-st::before,.msn-tbl td.msn-tt::before{content:none;}
+.msn-tbl td.msn-empty{display:block;text-align:center;padding:32px 0;color:#8e8e93;font-size:14px;}
+.msn-tbl td.msn-empty::before{content:none;}
+.msn-tbl tbody tr.msn-empty-row{background:none;border:0;box-shadow:none;padding:0;margin-bottom:0;}
 .msn-tbl td.msn-tt{padding:0 80px 6px 0;margin-bottom:4px;border-bottom:1px solid #3a3a3c;display:block;}
 .msn-pager{display:flex;align-items:center;justify-content:center;gap:4px;margin-top:14px;flex-wrap:wrap;}
 .msn-pager button{min-width:34px;height:34px;border-radius:10px;border:0;background:transparent;color:#aeaeb2;font-size:14px;font-weight:700;cursor:pointer;}
@@ -860,7 +863,7 @@ function renderMissions(d){
   // 미션 테이블
   h+='<table class="msn-tbl"><thead><tr><th>진행상태</th><th>미션명</th><th>미션 구분</th><th>유형</th><th>미션기간</th></tr></thead><tbody>';
   if(!rows.length){
-    h+='<tr><td colspan="5" style="padding:32px 0;text-align:center;color:#8e8e93;font-size:14px">'+(_mIsToday?'오늘 진행 중인 미션이 없습니다':'미션이 없습니다')+'</td></tr>';
+    h+='<tr class="msn-empty-row"><td colspan="5" class="msn-empty">'+(_mIsToday?'오늘 진행 중인 미션이 없습니다':'미션이 없습니다')+'</td></tr>';
   }
   rows.forEach(function(m){
     h+='<tr data-mid="'+_mE(m.missionId)+'" onclick="openMissionDetail(\''+_mE(m.missionId)+'\')" style="background:linear-gradient(135deg,#2c2c2e 0%,#343436 100%);border-radius:18px;margin-bottom:14px;padding:18px 20px;display:block;width:100%;border:1px solid #3a3a3c;box-shadow:0 2px 8px rgba(0,0,0,0.3)">';
