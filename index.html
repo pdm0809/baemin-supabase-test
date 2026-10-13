@@ -812,9 +812,9 @@ function renderMissions(d){
     h+='<tr data-mid="'+_mE(m.missionId)+'" onclick="openMissionDetail(\''+_mE(m.missionId)+'\')" style="background:linear-gradient(135deg,#2c2c2e 0%,#343436 100%);border-radius:18px;margin-bottom:14px;padding:18px 20px;display:block;width:100%;border:1px solid #3a3a3c;box-shadow:0 2px 8px rgba(0,0,0,0.3)">';
     h+='<td class="msn-st" data-label="진행상태">'+_mBadge(m.bizStatus)+'</td>';
     h+='<td class="msn-tt" data-label="미션명"><div style="font-weight:800;font-size:17px;color:#fff;line-height:1.4">'+_mE(m.title)+'</div><div style="font-size:13px;color:#a1a1a6;margin-top:4px">'+_mE(m.missionId)+'</div></td>';
-    h+='<td data-label="미션 구분">'+_mOr(m.promotionType)+'</td>';
-    h+='<td data-label="유형">'+_mOr(m.channel)+'</td>';
-    h+='<td data-label="미션기간">'+_mPeriod(m.startAt,m.endAt)+'</td>';
+    h+='<td data-label="미션 구분"><span style="color:#0A84FF;font-weight:700">'+_mOr(m.promotionType)+'</span></td>';
+    h+='<td data-label="유형"><span style="color:#BF5AF2;font-weight:700">'+_mOr(m.channel)+'</span></td>';
+    h+='<td data-label="미션기간"><span style="color:#FF9F0A;font-weight:600">'+_mPeriod(m.startAt,m.endAt)+'</span></td>';
     h+='</tr>';
   });
   h+='</tbody></table>';
