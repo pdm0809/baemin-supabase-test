@@ -844,7 +844,7 @@ function _mDetailEl(){
   document.body.appendChild(w);return w;
 }
 function openMissionDetail(mid){missionDetailId=String(mid);missionRiderFilter='';missionRiderPage=1;try{history.pushState({missionDetail:true},'',location.href);}catch(e){}renderMissionDetail();}
-function closeMissionDetail(){missionDetailId=null;var w=document.getElementById('missionDetail');if(w){w.style.display='none';w.innerHTML='';}}window.addEventListener('popstate',function(e){if(e.state&&e.state.missionDetail){closeMissionDetail();}else if(e.state&&e.state.mission){var _md=document.getElementById('missionDetail');if(_md&&_md.style.display!=='none'){closeMissionDetail();history.pushState({mission:true},'',location.href);}}});
+function closeMissionDetail(){missionDetailId=null;var w=document.getElementById('missionDetail');if(w){w.style.display='none';w.innerHTML='';}}window.addEventListener('popstate',function(e){if(e.state&&e.state.missionDetail){closeMissionDetail();}else if(e.state&&e.state.mission){var _md=document.getElementById('missionDetail');if(_md&&_md.style.display!=='none'){closeMissionDetail();}}else if(!e.state){var _mm=document.getElementById('missionModal');if(_mm&&_mm.style.display!=='none'){closeMissions();}}});
 
 function renderMissionDetail(){
   if(!missionDetailId)return;
