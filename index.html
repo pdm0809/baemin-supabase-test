@@ -135,7 +135,7 @@ async function doTestLogin(){if(location.search.indexOf('test=1')<0){showToast('
     if(!inputKey)return;
     var d=await baeminApi('testAdminLogin',{testKey:inputKey});
     if(d.ok){
-      var s={token:d.result.token,name:d.result.name,isAdmin:!!d.result.isAdmin,isSuperAdmin:!!d.result.isSuperAdmin,userId:d.result.userId||null,loginAt:Date.now()};
+      var _r=d.result||{};if(_r.result&&typeof _r.result==='object')_r=_r.result;var s={token:_r.token,name:_r.name,isAdmin:!!_r.isAdmin,isSuperAdmin:!!_r.isSuperAdmin,userId:_r.userId||null,loginAt:Date.now()};
       try{localStorage.setItem('baemin_session_test',JSON.stringify(s));}catch(e){}
       enterAppAfterLogin(s);
     }else{
@@ -169,7 +169,7 @@ async function handleKakaoCallback(){
     if(errEl)errEl.textContent='카카오 로그인 중...';
     var d=await baeminApi('kakao_login',{code:code,deviceId:getDeviceId()});
     if(d.ok){
-      var s={token:d.result.token,name:d.result.name,isAdmin:!!d.result.isAdmin,isSuperAdmin:!!d.result.isSuperAdmin,userId:d.result.userId||null,loginAt:Date.now()};
+      var _r=d.result||{};if(_r.result&&typeof _r.result==='object')_r=_r.result;var s={token:_r.token,name:_r.name,isAdmin:!!_r.isAdmin,isSuperAdmin:!!_r.isSuperAdmin,userId:_r.userId||null,loginAt:Date.now()};
       try{localStorage.setItem('baemin_session_test',JSON.stringify(s));}catch(e){}
       enterAppAfterLogin(s);
       return true;
@@ -853,7 +853,7 @@ function renderMissionDetail(){
   if(!m){closeMissionDetail();return;}
   var all=((d.missionRiders||{})[m.missionId])||[];
   var fk=String(missionRiderFilter||'').replace(/\s/g,'');
-  var rs=all.filter(function(r){return !fk||String(r.statusText||'').replace(/\s/g,'')===fk;});
+  var rs=all.filter(function(r){if(!fk)return true;if(fk==='달성완료')return String(r.statusText||'').replace(/\s/g,'')==='달성';return String(r.statusText||'').replace(/\s/g,'')===fk;});
   var rows=rs;
 
   var w=_mDetailEl();
@@ -865,13 +865,13 @@ function renderMissionDetail(){
   // 보상
   h+='<div style="background:#2c2c2e;border-radius:14px;padding:12px 14px;margin-bottom:10px"><div style="font-size:12px;color:#8e8e93">보상</div><div style="font-size:15px;font-weight:800;margin-top:2px">'+_mOr(m.rewardText||m.reward)+'</div></div>';
 
-  // 달성률 (participatingCount/totalCount 기반)
+  // 참여율 (participatingCount/totalCount 기반)
   var _pc=m.participatingCount,_tc=m.totalCount;
   var _hasC=(_pc!==null&&_pc!==undefined&&_pc!=='')&&(_tc!==null&&_tc!==undefined&&_tc!=='');
   var _rate=(_hasC&&Number(_tc)>0)?Math.round(Number(_pc)/Number(_tc)*100):null;
   h+='<div style="background:#2c2c2e;border-radius:14px;padding:14px;margin-bottom:14px;display:flex;gap:24px">';
-  h+='<div><div style="font-size:12px;color:#8e8e93;font-weight:600">달성률</div><div style="font-size:22px;font-weight:800;color:#0A84FF;margin-top:2px">'+(_rate===null?_mTBD:_mE(_rate+'%'))+'</div></div>';
-  h+='<div><div style="font-size:12px;color:#8e8e93;font-weight:600">달성 인원</div><div style="font-size:22px;font-weight:800;margin-top:2px">'+(_hasC?_mE(_pc+'/'+_tc+'명'):_mTBD)+'</div></div></div>';
+  h+='<div><div style="font-size:12px;color:#8e8e93;font-weight:600">참여율</div><div style="font-size:22px;font-weight:800;color:#0A84FF;margin-top:2px">'+(_rate===null?_mTBD:_mE(_rate+'%'))+'</div></div>';
+  h+='<div><div style="font-size:12px;color:#8e8e93;font-weight:600">참여 인원</div><div style="font-size:22px;font-weight:800;margin-top:2px">'+(_hasC?_mE(_pc+'/'+_tc+'명'):_mTBD)+'</div></div></div>';
 
   // 라이더 필터
   h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">';
