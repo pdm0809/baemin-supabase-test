@@ -628,7 +628,7 @@ function closeApproval(){
 .msn-pager button{min-width:34px;height:34px;border-radius:10px;border:0;background:transparent;color:#aeaeb2;font-size:14px;font-weight:700;cursor:pointer;}
 .msn-pager button.on{background:#0A84FF;color:#fff;}
 .msn-pager button:disabled{opacity:.3;cursor:default;}
-.msn-radio{position:relative;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;background:#2c2c2e;border:1px solid #2c2c2e;color:#fff;cursor:pointer;;white-space:nowrap}
+.msn-radio{position:relative;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;background:#2c2c2e;border:1px solid #2c2c2e;color:#fff;cursor:pointer;flex-shrink:0;white-space:nowrap}
 .msn-radio.on{background:#0A84FF;border-color:#0A84FF;}
 .msn-dot{width:12px;height:12px;border-radius:50%;border:2px solid #8e8e93;}
 .msn-radio.on .msn-dot{border-color:#fff;background:radial-gradient(#fff 0 3px,transparent 3.5px);}
@@ -857,7 +857,7 @@ function renderMissionDetail(){
   var rows=rs;
 
   var w=_mDetailEl();
-  var h='<div style="position:absolute;left:0;right:0;bottom:0;max-height:98vh;max-height:92dvh;background:#1c1c1e;border-radius:20px 20px 0 0;display:flex;flex-direction:column;color:#fff">';
+  var h='<div style="position:absolute;left:0;right:0;bottom:0;max-height:98vh;max-height:92dvh;background:#1c1c1e;border-radius:20px 20px 0 0;display:flex;flex-direction:column;color:#fff;overflow:hidden">';
   h+='<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:16px 16px 10px;gap:12px"><div><div style="font-size:22px;font-weight:800">'+_mE(m.title)+'</div><div style="font-size:12px;color:#8e8e93;margin-top:4px">'+_mE(m.missionId)+' · '+_mBadge(m.bizStatus)+'</div></div>';
   h+='<button onclick="closeMissionDetail()" style="background:#2c2c2e;border:0;color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;flex:none">✕</button></div>';
   h+='<div class="msn-sheet-body" style="overflow-y:auto;padding:0 16px 24px;overscroll-behavior:contain">';
@@ -879,7 +879,7 @@ function renderMissionDetail(){
   h+='</div>';
 
   // 라이더 테이블 (스크롤)
-  h+='<div style="max-height:68vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain">';
+  h+='<div style="max-height:68vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;min-height:0;flex-shrink:1">';
   h+='<table class="msn-rtbl"><thead><tr><th style="width:36%">라이더 정보</th><th style="width:38%">기본 미션 현황</th><th>추가 미션 현황</th></tr></thead><tbody>';
   if(!rows.length){
     h+='<tr><td colspan="3" style="padding:24px 0;text-align:center;color:#8e8e93">'+(all.length?'해당 상태의 라이더가 없어요':'라이더 데이터가 없어요')+'</td></tr>';
