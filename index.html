@@ -601,6 +601,7 @@ function closeApproval(){
 }
 </script><style>
 /* 미션 UI v3 (2026-10-13) */
+#missionModal{user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;}
 .msn-sel{appearance:none;-webkit-appearance:none;width:100%;background:#2c2c2e;color:#fff;border:1px solid #2c2c2e;border-radius:12px;padding:11px 12px;font-size:14px;font-weight:600;font-family:inherit;}
 .msn-ddw{position:relative;}
 .msn-ddb{width:100%;background:#2c2c2e;color:#fff;border:1px solid #3a3a3c;border-radius:12px;padding:11px 12px;font-size:14px;font-weight:600;font-family:inherit;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer;overflow:hidden;}
@@ -730,9 +731,16 @@ window.setMissionDate = function(dateStr){
   missionPage = 1;
   var picker = document.getElementById('missionDatePicker');
   if(picker && dateStr) picker.value = dateStr;
+  var _mlb=document.getElementById('missionDateLabel'); if(_mlb)_mlb.textContent=_mDateLabel(dateStr);
   missionDate = missionViewDate;
   loadMissions(missionViewDate);
 };
+function _mDateLabel(ds){ var wd=['일','월','화','수','목','금','토']; var v=ds||_mTodayStr(); var d=new Date(v+'T00:00:00'); if(isNaN(d.getTime())) return v; return v+' ('+wd[d.getDay()]+')'; }
+var msnCalY=0, msnCalM=0;
+window.toggleMsnCal=function(ev){ if(ev&&ev.stopPropagation)ev.stopPropagation(); var p=document.getElementById('msnCalPop'); if(!p)return; if(p.style.display==='none'||!p.style.display){ var cur=document.getElementById('missionDatePicker'); var v=cur&&cur.value?cur.value:_mTodayStr(); var a=v.split('-'); msnCalY=parseInt(a[0],10); msnCalM=parseInt(a[1],10)-1; renderMsnCal(); p.style.display='block'; } else { p.style.display='none'; } };
+function renderMsnCal(){ var p=document.getElementById('msnCalPop'); if(!p)return; function pad(n){return ('0'+n).slice(-2);} var today=_mTodayStr(); var first=new Date(msnCalY,msnCalM,1).getDay(); var last=new Date(msnCalY,msnCalM+1,0).getDate(); var cur=document.getElementById('missionDatePicker'); var sel=cur&&cur.value?cur.value:''; var h='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'; h+='<button onclick="msnCalMove(-1)" style="background:#2c2c2e;color:#fff;border:0;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer">◀</button>'; h+='<div style="color:#fff;font-weight:800;font-size:16px">'+msnCalY+'년 '+(msnCalM+1)+'월</div>'; h+='<button onclick="msnCalMove(1)" style="background:#2c2c2e;color:#fff;border:0;width:36px;height:36px;border-radius:50%;font-size:16px;cursor:pointer">▶</button></div>'; h+='<div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:6px">'; var wd=['일','월','화','수','목','금','토']; for(var i=0;i<7;i++){ h+='<div style="color:'+(i===0?'#FF6B6B':(i===6?'#5AA9FF':'#8e8e93'))+';font-size:12px;font-weight:700;padding:6px 0">'+wd[i]+'</div>'; } h+='</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center">'; for(var i=0;i<first;i++){ h+='<div></div>'; } for(var d=1;d<=last;d++){ var ds=msnCalY+'-'+pad(msnCalM+1)+'-'+pad(d); var dis=ds>today; var isSel=(ds===sel); var isToday=(ds===today); var st='display:flex;align-items:center;justify-content:center;aspect-ratio:1;border-radius:50%;font-size:14px;'; if(dis){ st+='color:#3a3a3c;'; } else if(isSel){ st+='background:#0A84FF;color:#fff;font-weight:800;cursor:pointer;'; } else { st+='color:#fff;cursor:pointer;'+(isToday?'border:1.5px solid #0A84FF;':''); } if(dis){ h+='<div style="'+st+'">'+d+'</div>'; } else { h+='<div onclick="msnCalPick(\''+ds+'\')" style="'+st+'">'+d+'</div>'; } } h+='</div>'; p.innerHTML=h; }
+window.msnCalMove=function(dir){ msnCalM+=dir; if(msnCalM<0){msnCalM=11;msnCalY--;} if(msnCalM>11){msnCalM=0;msnCalY++;} var t=_mTodayStr().split('-'); var ty=parseInt(t[0],10), tm=parseInt(t[1],10)-1; if(msnCalY>ty||(msnCalY===ty&&msnCalM>tm)){msnCalY=ty;msnCalM=tm;} renderMsnCal(); };
+window.msnCalPick=function(ds){ var cur=document.getElementById('missionDatePicker'); if(cur)cur.value=ds; var lb=document.getElementById('missionDateLabel'); if(lb)lb.textContent=_mDateLabel(ds); var p=document.getElementById('msnCalPop'); if(p)p.style.display='none'; window.setMissionDate(ds); };
 // 06:00 자동 리셋: 1분마다 체크
 setInterval(function(){
   var now = new Date();
@@ -742,6 +750,7 @@ setInterval(function(){
       missionDate = null;
       var picker = document.getElementById('missionDatePicker');
       if(picker) picker.value = _mTodayStr();
+      var _mlb2=document.getElementById('missionDateLabel'); if(_mlb2)_mlb2.textContent=_mDateLabel(_mTodayStr());
       if(document.getElementById('missionModal').style.display==='block'){
         loadMissions(null);
       }
@@ -809,7 +818,12 @@ function renderMissions(d){
   // 날짜 선택기 (방향 A: 06:00 리셋 + 과거 기록 조회)
   var _mPickerVal=(typeof missionViewDate!=='undefined'&&missionViewDate)?missionViewDate:((typeof missionDate!=='undefined'&&missionDate)?missionDate:_mTodayStr());
   h+='<div style="font-size:12px;color:#aeaeb2;margin-bottom:6px">조회 날짜</div>';
-  h+='<input type="date" id="missionDatePicker" value="'+_mPickerVal+'" max="'+_mTodayStr()+'" onchange="window.setMissionDate(this.value)" style="background:#2c2c2e;color:#fff;border-radius:12px;padding:10px 14px;border:1px solid #3a3a3c;font-size:14px;width:100%;margin-bottom:12px;box-sizing:border-box;color-scheme:dark">';
+  h+='<input type="hidden" id="missionDatePicker" value="'+_mPickerVal+'">';
+  h+='<div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">';
+  h+='<div id="missionDateLabel" style="flex:1;background:#2c2c2e;color:#fff;border-radius:12px;padding:10px 14px;border:1px solid #3a3a3c;font-size:14px;font-weight:700">'+_mDateLabel(_mPickerVal)+'</div>';
+  h+='<button onclick="window.toggleMsnCal(event)" style="background:#0A84FF;color:#fff;border:0;border-radius:12px;padding:10px 16px;font-size:14px;font-weight:800;white-space:nowrap;cursor:pointer">날짜조회</button>';
+  h+='</div>';
+  h+='<div id="msnCalPop" style="display:none;background:#1c1c1e;border:1px solid #3a3a3c;border-radius:16px;padding:14px;margin-bottom:12px"></div>';
 
   // 요약 카드
   h+='<div style="background:linear-gradient(135deg,#2c2c2e 0%,#343436 100%);border-radius:18px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border:1px solid #3a3a3c;box-shadow:0 2px 8px rgba(0,0,0,0.3)"><span style="font-size:17px;color:#fff;font-weight:800">전체 미션</span><span style="font-size:20px;font-weight:800;color:#0A84FF">'+_mOr(d&&d.missionSummary)+'</span></div>';
