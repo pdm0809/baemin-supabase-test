@@ -805,7 +805,10 @@ function renderMissions(d){
   ms.forEach(function(m){if(m.bizStatus&&sts.indexOf(m.bizStatus)<0)sts.push(m.bizStatus);});
   if(missionSelMid&&!ms.some(function(m){return String(m.missionId)===missionSelMid;}))missionSelMid='';
 
-  var list=ms.filter(function(m){return (!missionTab||m.bizStatus===missionTab)&&(!missionSelMid||String(m.missionId)===missionSelMid);});
+  // [2026-10-14 박동민 지시] 오늘 기준: 종료된 미션 제외 (날짜 선택기 UI 기본값과 별개로 데이터 레벨에서 항상 오늘 기준 적용)
+  var _mEffDate=(typeof missionViewDate!=='undefined'&&missionViewDate)||_mTodayStr();
+  var _mIsToday=(_mEffDate===_mTodayStr());
+  var list=ms.filter(function(m){return (!_mIsToday||m.bizStatus!=='종료')&&(!missionTab||m.bizStatus===missionTab)&&(!missionSelMid||String(m.missionId)===missionSelMid);});
   var pages=Math.max(1,Math.ceil(list.length/missionPageSize));
   if(missionPage>pages)missionPage=pages;
   if(missionPage<1)missionPage=1;
@@ -826,7 +829,7 @@ function renderMissions(d){
   h+='<div id="msnCalPop" style="display:none;background:#1c1c1e;border:1px solid #3a3a3c;border-radius:16px;padding:14px;margin-bottom:12px"></div>';
 
   // 요약 카드
-  h+='<div style="background:linear-gradient(135deg,#2c2c2e 0%,#343436 100%);border-radius:18px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border:1px solid #3a3a3c;box-shadow:0 2px 8px rgba(0,0,0,0.3)"><span style="font-size:17px;color:#fff;font-weight:800">전체 미션</span><span style="font-size:20px;font-weight:800;color:#0A84FF">'+_mOr(d&&d.missionSummary)+'</span></div>';
+  h+='<div style="background:linear-gradient(135deg,#2c2c2e 0%,#343436 100%);border-radius:18px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border:1px solid #3a3a3c;box-shadow:0 2px 8px rgba(0,0,0,0.3)"><span style="font-size:17px;color:#fff;font-weight:800">전체 미션</span><span style="font-size:20px;font-weight:800;color:#0A84FF">'+list.length+'</span></div>';
 
   // 필터 드롭다운
   h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
@@ -857,7 +860,7 @@ function renderMissions(d){
   // 미션 테이블
   h+='<table class="msn-tbl"><thead><tr><th>진행상태</th><th>미션명</th><th>미션 구분</th><th>유형</th><th>미션기간</th></tr></thead><tbody>';
   if(!rows.length){
-    h+='<tr><td colspan="5" style="padding:32px 0;text-align:center;color:#8e8e93;font-size:14px">미션이 없습니다</td></tr>';
+    h+='<tr><td colspan="5" style="padding:32px 0;text-align:center;color:#8e8e93;font-size:14px">'+(_mIsToday?'오늘 진행 중인 미션이 없습니다':'미션이 없습니다')+'</td></tr>';
   }
   rows.forEach(function(m){
     h+='<tr data-mid="'+_mE(m.missionId)+'" onclick="openMissionDetail(\''+_mE(m.missionId)+'\')" style="background:linear-gradient(135deg,#2c2c2e 0%,#343436 100%);border-radius:18px;margin-bottom:14px;padding:18px 20px;display:block;width:100%;border:1px solid #3a3a3c;box-shadow:0 2px 8px rgba(0,0,0,0.3)">';
