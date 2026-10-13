@@ -853,7 +853,7 @@ function renderMissionDetail(){
   if(!m){closeMissionDetail();return;}
   var all=((d.missionRiders||{})[m.missionId])||[];
   var fk=String(missionRiderFilter||'').replace(/\s/g,'');
-  var rs=all.filter(function(r){if(!fk)return true;if(fk==='달성완료')return String(r.statusText||'').replace(/\s/g,'')==='달성';return String(r.statusText||'').replace(/\s/g,'')===fk;});
+  var rs=all.filter(function(r){if(!fk)return true;if(fk==='달성완료')return String(r.statusText||'').replace(/\s/g,'')==='달성';if(fk==='대기중')return String(r.statusText||'').replace(/\s/g,'')==='참여대기중';return String(r.statusText||'').replace(/\s/g,'')===fk;});
   var rows=rs;
 
   var w=_mDetailEl();
@@ -875,7 +875,7 @@ function renderMissionDetail(){
 
   // 라이더 필터
   h+='<div style="display:flex;gap:4px;flex-wrap:nowrap;margin-bottom:10px">';
-  var _cnt={t:all.length,w:0,p:0,d:0};all.forEach(function(r){var st=String(r.statusText||'').replace(/\s/g,'');if(st==='달성')_cnt.d++;else if(st==='참여중')_cnt.p++;else if(st==='참여대기중')_cnt.w++;});['','참여 대기중','참여중','달성완료'].forEach(function(o){var on=(String(missionRiderFilter||'')===o);var _c=o==='' ? _cnt.t : o==='참여 대기중' ? _cnt.w : o==='참여중' ? _cnt.p : _cnt.d;h+='<label class="msn-radio'+(on?' on':'')+'"><input type="radio" name="msnRf" value="'+o+'"'+(on?' checked':'')+' onchange="setMissionFilter(this.value)" style="position:absolute;opacity:0;pointer-events:none"><span class="msn-dot"></span>'+(o||'전체')+' '+_c+'</label>';});
+  var _cnt={t:all.length,w:0,p:0,d:0};all.forEach(function(r){var st=String(r.statusText||'').replace(/\s/g,'');if(st==='달성')_cnt.d++;else if(st==='참여중')_cnt.p++;else if(st==='참여대기중')_cnt.w++;});['','대기중','참여중','달성완료'].forEach(function(o){var on=(String(missionRiderFilter||'')===o);var _c=o==='' ? _cnt.t : o==='대기중' ? _cnt.w : o==='참여중' ? _cnt.p : _cnt.d;h+='<label class="msn-radio'+(on?' on':'')+'"><input type="radio" name="msnRf" value="'+o+'"'+(on?' checked':'')+' onchange="setMissionFilter(this.value)" style="position:absolute;opacity:0;pointer-events:none"><span class="msn-dot"></span>'+(o||'전체')+' '+_c+'</label>';});
   h+='</div>';
 
   // 라이더 테이블 (스크롤)
