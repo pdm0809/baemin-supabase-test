@@ -618,7 +618,7 @@ function closeApproval(){
 .msn-tbl tbody tr[data-mid]{cursor:pointer;}
 .msn-tbl thead{display:none;}
 .msn-tbl,.msn-tbl tbody,.msn-tbl tr,.msn-tbl td{display:block;width:100%;}
-.msn-tbl tbody tr{background:#2c2c2e;border-radius:16px;margin-bottom:10px;padding:12px 14px;position:relative;}
+.msn-tbl tbody tr{background:#2c2c2e;border-radius:18px;margin-bottom:14px;padding:16px 18px;position:relative;}
 .msn-tbl td{border:0;padding:3px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;}
 .msn-tbl td::before{content:attr(data-label);color:#8e8e93;font-size:12px;font-weight:600;flex:none;}
 .msn-tbl td.msn-st{position:absolute;top:12px;right:14px;width:auto;padding:0;}
@@ -628,7 +628,7 @@ function closeApproval(){
 .msn-pager button{min-width:34px;height:34px;border-radius:10px;border:0;background:transparent;color:#aeaeb2;font-size:14px;font-weight:700;cursor:pointer;}
 .msn-pager button.on{background:#0A84FF;color:#fff;}
 .msn-pager button:disabled{opacity:.3;cursor:default;}
-.msn-radio{position:relative;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;background:#2c2c2e;border:1px solid #2c2c2e;color:#fff;cursor:pointer;}
+.msn-radio{position:relative;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;background:#2c2c2e;border:1px solid #2c2c2e;color:#fff;cursor:pointer;;white-space:nowrap}
 .msn-radio.on{background:#0A84FF;border-color:#0A84FF;}
 .msn-dot{width:12px;height:12px;border-radius:50%;border:2px solid #8e8e93;}
 .msn-radio.on .msn-dot{border-color:#fff;background:radial-gradient(#fff 0 3px,transparent 3.5px);}
@@ -843,8 +843,8 @@ function _mDetailEl(){
   w.addEventListener('click',function(ev){if(ev.target===w)closeMissionDetail();});
   document.body.appendChild(w);return w;
 }
-function openMissionDetail(mid){missionDetailId=String(mid);missionRiderFilter='';missionRiderPage=1;renderMissionDetail();}
-function closeMissionDetail(){missionDetailId=null;var w=document.getElementById('missionDetail');if(w){w.style.display='none';w.innerHTML='';}}
+function openMissionDetail(mid){missionDetailId=String(mid);missionRiderFilter='';missionRiderPage=1;try{history.pushState({missionDetail:true},'',location.href);}catch(e){}renderMissionDetail();}
+function closeMissionDetail(){missionDetailId=null;var w=document.getElementById('missionDetail');if(w){w.style.display='none';w.innerHTML='';}}window.addEventListener('popstate',function(e){if(e.state&&e.state.missionDetail){closeMissionDetail();}else if(e.state&&e.state.mission){var _md=document.getElementById('missionDetail');if(_md&&_md.style.display!=='none'){closeMissionDetail();history.pushState({mission:true},'',location.href);}}});
 
 function renderMissionDetail(){
   if(!missionDetailId)return;
@@ -857,7 +857,7 @@ function renderMissionDetail(){
   var rows=rs;
 
   var w=_mDetailEl();
-  var h='<div style="position:absolute;left:0;right:0;bottom:0;max-height:92vh;max-height:92dvh;background:#1c1c1e;border-radius:20px 20px 0 0;display:flex;flex-direction:column;color:#fff">';
+  var h='<div style="position:absolute;left:0;right:0;bottom:0;max-height:98vh;max-height:92dvh;background:#1c1c1e;border-radius:20px 20px 0 0;display:flex;flex-direction:column;color:#fff">';
   h+='<div style="display:flex;align-items:flex-start;justify-content:space-between;padding:16px 16px 10px;gap:12px"><div><div style="font-size:22px;font-weight:800">'+_mE(m.title)+'</div><div style="font-size:12px;color:#8e8e93;margin-top:4px">'+_mE(m.missionId)+' · '+_mBadge(m.bizStatus)+'</div></div>';
   h+='<button onclick="closeMissionDetail()" style="background:#2c2c2e;border:0;color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;flex:none">✕</button></div>';
   h+='<div class="msn-sheet-body" style="overflow-y:auto;padding:0 16px 24px;overscroll-behavior:contain">';
@@ -879,7 +879,7 @@ function renderMissionDetail(){
   h+='</div>';
 
   // 라이더 테이블 (스크롤)
-  h+='<div style="max-height:42vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain">';
+  h+='<div style="max-height:68vh;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain">';
   h+='<table class="msn-rtbl"><thead><tr><th style="width:36%">라이더 정보</th><th style="width:38%">기본 미션 현황</th><th>추가 미션 현황</th></tr></thead><tbody>';
   if(!rows.length){
     h+='<tr><td colspan="3" style="padding:24px 0;text-align:center;color:#8e8e93">'+(all.length?'해당 상태의 라이더가 없어요':'라이더 데이터가 없어요')+'</td></tr>';
