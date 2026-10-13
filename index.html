@@ -721,6 +721,34 @@ function _mPeriod(a,b){
 var missionTab='', missionSelMid='', missionPage=1, missionPageSize=10;
 var missionDetailId=null, missionRiderFilter='', missionRiderPage=1;
 
+// 미션 날짜 관리 (방향 A: 06:00 리셋 + 과거 조회)
+var missionViewDate = null; // null이면 오늘
+function _mTodayStr(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function _mIsAfter6AM(){ return new Date().getHours() >= 6; }
+window.setMissionDate = function(dateStr){
+  missionViewDate = dateStr || null;
+  missionPage = 1;
+  var picker = document.getElementById('missionDatePicker');
+  if(picker && dateStr) picker.value = dateStr;
+  missionDate = missionViewDate;
+  loadMissions(missionViewDate);
+};
+// 06:00 자동 리셋: 1분마다 체크
+setInterval(function(){
+  var now = new Date();
+  if(now.getHours()===6 && now.getMinutes()===0){
+    if(missionViewDate !== null){
+      missionViewDate = null;
+      missionDate = null;
+      var picker = document.getElementById('missionDatePicker');
+      if(picker) picker.value = _mTodayStr();
+      if(document.getElementById('missionModal').style.display==='block'){
+        loadMissions(null);
+      }
+    }
+  }
+}, 60000);
+
 // === 커스텀 드롭다운 ===
 window.msnDDToggle=function(id,ev){
   if(ev&&ev.stopPropagation)ev.stopPropagation();
@@ -753,6 +781,9 @@ window.setMissionFilter=function(f){missionRiderFilter=f;renderMissionDetail();}
 
 // === 메인 렌더링 ===
 function renderMissions(d){
+  if(typeof missionViewDate!=='undefined' && missionViewDate && missionViewDate !== _mTodayStr()){
+    console.warn('[미션] 과거 날짜 조회 요청:', missionViewDate, '- 백엔드 날짜별 조회 미지원 시 오늘 데이터 표시');
+  }
   var el=document.getElementById('missionBody');
   window._missionData=d;
   var ms=(d&&d.missions)||[];
@@ -772,7 +803,13 @@ function renderMissions(d){
   var rows=list.slice((missionPage-1)*missionPageSize,missionPage*missionPageSize);
 
   var h='<div style="background:#1c1c1e;color:#fff;padding:16px;border-radius:16px;">';
-  h+='<div style="font-size:13px;color:#aeaeb2;line-height:1.5;margin-bottom:14px">오늘 기준으로 운영 중인 미션과 라이더의 미션 수행 현황을 조회해요.</div>';
+  var _mDescTxt=(typeof missionViewDate!=='undefined'&&missionViewDate&&missionViewDate!==_mTodayStr())?'선택한 날짜 기준으로 운영 중인 미션과 라이더의 미션 수행 현황을 조회해요.':'오늘 기준으로 운영 중인 미션과 라이더의 미션 수행 현황을 조회해요.';
+  h+='<div style="font-size:13px;color:#aeaeb2;line-height:1.5;margin-bottom:14px">'+_mDescTxt+'</div>';
+
+  // 날짜 선택기 (방향 A: 06:00 리셋 + 과거 기록 조회)
+  var _mPickerVal=(typeof missionViewDate!=='undefined'&&missionViewDate)?missionViewDate:((typeof missionDate!=='undefined'&&missionDate)?missionDate:_mTodayStr());
+  h+='<div style="font-size:12px;color:#aeaeb2;margin-bottom:6px">조회 날짜</div>';
+  h+='<input type="date" id="missionDatePicker" value="'+_mPickerVal+'" max="'+_mTodayStr()+'" onchange="window.setMissionDate(this.value)" style="background:#2c2c2e;color:#fff;border-radius:12px;padding:10px 14px;border:1px solid #3a3a3c;font-size:14px;width:100%;margin-bottom:12px;box-sizing:border-box;color-scheme:dark">';
 
   // 요약 카드
   h+='<div style="background:linear-gradient(135deg,#2c2c2e 0%,#343436 100%);border-radius:18px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;border:1px solid #3a3a3c;box-shadow:0 2px 8px rgba(0,0,0,0.3)"><span style="font-size:17px;color:#fff;font-weight:800">전체 미션</span><span style="font-size:20px;font-weight:800;color:#0A84FF">'+_mOr(d&&d.missionSummary)+'</span></div>';
