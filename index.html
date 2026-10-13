@@ -701,7 +701,7 @@ try{
 function _mE(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function _mV(v){return (v&&typeof v==='object')?v.description:v;}
 var _mTBD='<span class="msn-tbd">추후 연동</span>';
-function _mOr(v){v=_mV(v);return (v==null||v==='')?_mTBD:_mE(v);}
+function _mOr(v){v=_mV(v);return (v==null||v==='')?_mTBD:_mE(v);}function _mWon(v){v=_mV(v);if(v==null||v==='')return _mTBD;var str=String(v).trim();if(/원/.test(str))return _mE(str);var num=Number(str.replace(/[^0-9]/g,''));if(isNaN(num))return _mE(str);return _mE(num.toLocaleString('ko-KR')+'원');}
 function _mBadge(s){
   var bc={'진행중':'background:#34C759;color:#fff;','종료':'background:#8e8e93;color:#fff;','예약 중':'background:#FFCC00;color:#000;','예약중':'background:#FFCC00;color:#000;','지급확정':'background:#0A84FF;color:#fff;'};
   return '<span style="display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;'+(bc[s]||'background:#3a3a3c;color:#fff;')+'">'+_mE(s||'-')+'</span>';
@@ -863,7 +863,7 @@ function renderMissionDetail(){
   h+='<div class="msn-sheet-body" style="overflow-y:auto;padding:0 16px 24px;overscroll-behavior:contain">';
 
   // 보상
-  h+='<div style="background:#2c2c2e;border-radius:14px;padding:12px 14px;margin-bottom:10px"><div style="font-size:12px;color:#8e8e93">보상</div><div style="font-size:15px;font-weight:800;margin-top:2px">'+_mOr(m.rewardText||m.reward)+'</div></div>';
+  h+='<div style="background:#2c2c2e;border-radius:14px;padding:12px 14px;margin-bottom:10px"><div style="font-size:12px;color:#8e8e93">보상</div><div style="font-size:15px;font-weight:800;margin-top:2px">'+_mWon(m.rewardText||m.reward)+'</div></div>';
 
   // 참여율 (participatingCount/totalCount 기반)
   var _pc=m.participatingCount,_tc=m.totalCount;
