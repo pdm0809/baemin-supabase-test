@@ -618,9 +618,9 @@ function closeApproval(){
 .msn-tbl tbody tr[data-mid]{cursor:pointer;}
 .msn-tbl thead{display:none;}
 .msn-tbl,.msn-tbl tbody,.msn-tbl tr,.msn-tbl td{display:block;width:100%;}
-.msn-tbl tbody tr{background:#2c2c2e;border-radius:18px;margin-bottom:14px;padding:16px 18px;position:relative;}
-.msn-tbl td{border:0;padding:3px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;}
-.msn-tbl td::before{content:attr(data-label);color:#8e8e93;font-size:12px;font-weight:600;flex:none;}
+.msn-tbl tbody tr{background:linear-gradient(135deg,#2c2c2e 0%,#343436 100%);border-radius:18px;margin-bottom:14px;padding:18px 20px;position:relative;border:1px solid #3a3a3c;box-shadow:0 2px 8px rgba(0,0,0,0.3);}
+.msn-tbl td{border:0;padding:4px 0;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:15px;color:#e5e5e7;}
+.msn-tbl td::before{content:attr(data-label);color:#a1a1a6;font-size:13px;font-weight:700;flex:none;}
 .msn-tbl td.msn-st{position:absolute;top:12px;right:14px;width:auto;padding:0;}
 .msn-tbl td.msn-st::before,.msn-tbl td.msn-tt::before{content:none;}
 .msn-tbl td.msn-tt{padding:0 80px 6px 0;margin-bottom:4px;border-bottom:1px solid #3a3a3c;display:block;}
@@ -811,7 +811,7 @@ function renderMissions(d){
   rows.forEach(function(m){
     h+='<tr data-mid="'+_mE(m.missionId)+'" onclick="openMissionDetail(\''+_mE(m.missionId)+'\')">';
     h+='<td class="msn-st" data-label="진행상태">'+_mBadge(m.bizStatus)+'</td>';
-    h+='<td class="msn-tt" data-label="미션명"><div style="font-weight:700">'+_mE(m.title)+'</div><div style="font-size:11px;color:#8e8e93">'+_mE(m.missionId)+'</div></td>';
+    h+='<td class="msn-tt" data-label="미션명"><div style="font-weight:800;font-size:17px;color:#fff;line-height:1.4">'+_mE(m.title)+'</div><div style="font-size:13px;color:#a1a1a6;margin-top:4px">'+_mE(m.missionId)+'</div></td>';
     h+='<td data-label="미션 구분">'+_mOr(m.promotionType)+'</td>';
     h+='<td data-label="유형">'+_mOr(m.channel)+'</td>';
     h+='<td data-label="미션기간">'+_mPeriod(m.startAt,m.endAt)+'</td>';
