@@ -628,7 +628,7 @@ function closeApproval(){
 .msn-pager button{min-width:34px;height:34px;border-radius:10px;border:0;background:transparent;color:#aeaeb2;font-size:14px;font-weight:700;cursor:pointer;}
 .msn-pager button.on{background:#0A84FF;color:#fff;}
 .msn-pager button:disabled{opacity:.3;cursor:default;}
-.msn-radio{position:relative;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font-size:13px;font-weight:700;background:#2c2c2e;border:1px solid #2c2c2e;color:#fff;cursor:pointer;flex-shrink:0;white-space:nowrap}
+.msn-radio{position:relative;display:inline-flex;align-items:center;gap:4px;padding:6px 10px;border-radius:999px;font-size:11px;font-weight:700;background:#2c2c2e;border:1px solid #2c2c2e;color:#fff;cursor:pointer;flex-shrink:0;white-space:nowrap}
 .msn-radio.on{background:#0A84FF;border-color:#0A84FF;}
 .msn-dot{width:12px;height:12px;border-radius:50%;border:2px solid #8e8e93;}
 .msn-radio.on .msn-dot{border-color:#fff;background:radial-gradient(#fff 0 3px,transparent 3.5px);}
@@ -874,7 +874,7 @@ function renderMissionDetail(){
   h+='<div><div style="font-size:12px;color:#8e8e93;font-weight:600">참여 인원</div><div style="font-size:22px;font-weight:800;margin-top:2px">'+(_hasC?_mE(_pc+'/'+_tc+'명'):_mTBD)+'</div></div></div>';
 
   // 라이더 필터
-  h+='<div style="display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;margin-bottom:10px;padding-right:16px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none">';
+  h+='<div style="display:flex;gap:4px;flex-wrap:nowrap;margin-bottom:10px">';
   var _cnt={t:all.length,w:0,p:0,d:0};all.forEach(function(r){var st=String(r.statusText||'').replace(/\s/g,'');if(st==='달성')_cnt.d++;else if(st==='참여중')_cnt.p++;else if(st==='참여대기중')_cnt.w++;});['','참여 대기중','참여중','달성완료'].forEach(function(o){var on=(String(missionRiderFilter||'')===o);var _c=o==='' ? _cnt.t : o==='참여 대기중' ? _cnt.w : o==='참여중' ? _cnt.p : _cnt.d;h+='<label class="msn-radio'+(on?' on':'')+'"><input type="radio" name="msnRf" value="'+o+'"'+(on?' checked':'')+' onchange="setMissionFilter(this.value)" style="position:absolute;opacity:0;pointer-events:none"><span class="msn-dot"></span>'+(o||'전체')+' '+_c+'</label>';});
   h+='</div>';
 
