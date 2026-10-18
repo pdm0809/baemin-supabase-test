@@ -975,17 +975,17 @@ function openMissionCal(){
   window._missionCalDates=window._missionCalDates||{};
   renderMissionCal();
   (async function(){
+    var sess=null;
+    try{sess=JSON.parse(localStorage.getItem('baemin_session_test')||'null');}catch(e){}
     try{
-      var sess=null;
-      try{sess=JSON.parse(localStorage.getItem('baemin_session_test')||'null');}catch(e){}
       var d=await baeminApi('getMissionDates',{token:sess?sess.token:''});
       if(d&&d.ok){window._missionCalDates=d.result||{};}
-      try{
-        var h=await baeminApi('getMissionHistoryDates',{token:sess?sess.token:''});
-        if(h&&h.ok){var hc=h.result||{};for(var k in hc){if(hc.hasOwnProperty(k)){window._missionCalDates[k]=hc[k];}}}
-      }catch(e){}
-      renderMissionCal();
     }catch(e){}
+    try{
+      var h=await baeminApi('getMissionHistoryDates',{token:sess?sess.token:''});
+      if(h&&h.ok){var hc=h.result||{};for(var k in hc){if(hc.hasOwnProperty(k)){window._missionCalDates[k]=hc[k];}}}
+    }catch(e){}
+    try{renderMissionCal();}catch(e){}
   })();
 }function renderMissionCal(){
   var dateCounts=window._missionCalDates||{};
