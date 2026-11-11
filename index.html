@@ -897,6 +897,8 @@ function renderMissions(d){
 
   h+='</div>';
   el.innerHTML=h;
+  // [2026-11-12] 상세 팝업이 열려 있으면 방금 받은 최신 데이터로 팝업도 다시 그린다 (오래된 명단 표시 방지)
+  if(missionDetailId){var _mdEl=document.getElementById('missionDetail');if(_mdEl&&_mdEl.style.display!=='none'){renderMissionDetail();}}
 }
 
 // === 상세 모달 ===
@@ -908,7 +910,7 @@ function _mDetailEl(){
   w.addEventListener('click',function(ev){if(ev.target===w)closeMissionDetailBtn();});
   document.body.appendChild(w);return w;
 }
-function openMissionDetail(mid){missionDetailId=String(mid);missionRiderFilter='';missionRiderPage=1;try{history.pushState({missionDetail:true},'',location.href);}catch(e){}renderMissionDetail();}
+function openMissionDetail(mid){missionDetailId=String(mid);missionRiderFilter='';missionRiderPage=1;try{history.pushState({missionDetail:true},'',location.href);}catch(e){}renderMissionDetail();try{loadMissions();}catch(e){}}
 function closeMissionDetailBtn(){if(history.state&&history.state.missionDetail){try{history.back();return;}catch(e){}}closeMissionDetail();}
 function closeMissionDetail(){missionDetailId=null;var w=document.getElementById('missionDetail');if(w){w.style.display='none';w.innerHTML='';}}window.addEventListener('popstate',function(e){if(e.state&&e.state.missionDetail){closeMissionDetail();}else if(e.state&&e.state.mission){var _md=document.getElementById('missionDetail');if(_md&&_md.style.display!=='none'){closeMissionDetail();}}});
 
